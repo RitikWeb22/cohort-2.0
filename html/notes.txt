@@ -1,0 +1,12 @@
+headings✅
+paragraphs✅
+images✅
+attributes✅
+links✅
+form✅
+formating ✅
+div & span ✅
+lists✅
+table✅
+sementic tags✅
+basic seo✅
