@@ -1,18 +1,46 @@
 # VantaNav UI 🌌
 
-> **Production-Ready Animated Overlay Navigation System for React**
-> Transform traditional website navigation into an immersive, cinema-grade overlay experience with staggered multi-slice reveals, fluid micro-interactions, responsive mega-menus, and built-in accessibility.
+> **Production-Ready Animated Overlay Navigation System for Modern React Applications**  
+> Transform standard website navigation into an immersive, cinema-grade overlay experience with staggered multi-slice reveals, fluid hover video/image reels, responsive mega-menus, and built-in accessibility.
 
-[![npm version](https://img.shields.io/npm/v/vanta-nav.svg)](https://www.npmjs.com/package/vanta-nav)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org)
-[![Motion](https://img.shields.io/badge/Animated_with-Motion-f43f5e.svg)](https://motion.dev)
+<p align="center">
+  <a href="https://www.npmjs.com/package/vanta-nav"><img src="https://img.shields.io/npm/v/vanta-nav.svg?color=indigo" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/vanta-nav"><img src="https://img.shields.io/npm/dm/vanta-nav.svg" alt="npm downloads" /></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
+  <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-Ready-blue.svg" alt="TypeScript" /></a>
+  <a href="https://motion.dev"><img src="https://img.shields.io/badge/Animated_with-Motion-f43f5e.svg" alt="Motion" /></a>
+</p>
 
 ---
 
+## 🎬 Live Showcase Demo
+
 <p align="center">
-  <img src="./assets/vantanav-demo.gif" alt="VantaNav Animated Overlay Navigation Demo" style="border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-width: 100%;" />
+  <img 
+    src="https://raw.githubusercontent.com/RitikWeb22/cohort-2.0/main/resume-projects/vinta-nav/assets/vantanav-demo.gif" 
+    alt="VantaNav UI Animated Overlay Navigation Demo" 
+    width="100%" 
+    style="border-radius: 12px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.1);" 
+  />
 </p>
+
+---
+
+## 📑 Table of Contents
+
+- [✨ Highlights](#-highlights)
+- [📦 Installation & Required Dependencies](#-installation--required-dependencies)
+- [🚀 Quick Start (60 Seconds)](#-quick-start-60-seconds)
+- [🖼️ Hover Media Previews (Images & Videos)](#️-hover-media-previews-images--videos)
+- [📐 Layouts & Directional Alignment](#-layouts--directional-alignment)
+- [🎛️ Side Card Customization & Removal](#️-side-card-customization--removal)
+- [🎭 Animation Presets](#-animation-presets)
+- [🎨 Theming & CSS Variables](#-theming--css-variables)
+- [🧩 Compound Component Architecture](#-compound-component-architecture)
+- [🌐 Next.js & Server Components Guide](#-nextjs--server-components-guide)
+- [📋 Complete Props API Reference](#-complete-props-api-reference)
+- [♿ Accessibility (A11y)](#-accessibility-a11y)
+- [📄 License](#-license)
 
 ---
 
@@ -20,73 +48,86 @@
 
 - 🎭 **Signature Slice Reveal Engine**: Multi-panel staggered curtains (2 to 6 panels) with smooth cubic-bezier easing.
 - 🚀 **6 Built-in Animation Presets**: `slice`, `curtain`, `split`, `slide`, `fade`, and `scale`.
-- 🎛️ **Dual API Paradigms**: Instant configuration via `<OverlayNavbar items={...} />` or advanced compound composition (`<NavbarBrand>`, `<NavbarOverlay>`, `<NavbarLinks>`).
-- 🎨 **Deep Theming via CSS Tokens**: 6 curated presets (`dark`, `light`, `cyber`, `emerald`, `sunset`, `minimal`) plus effortless CSS variable overrides.
-- ⚡ **Lightweight & High-Performance**: Tree-shakeable ESM/CJS build under 65 kB gzipped. No heavy third-party dependencies.
-- ♿ **Strict Accessibility (A11y)**: Focus trapping in modal states, Escape key handling, background scroll-locking with layout shift compensation, and automated `prefers-reduced-motion` detection.
-- 📱 **Responsive & Mobile-Ready**: Fluid typography, touch-friendly expandable submenus, and adaptive breakpoints.
+- 🖼️ **Hover Media Reels**: Autoplaying videos and images that react dynamically when visitors hover over links.
+- 📐 **Directional Customization**: 5 modern layout structures (`vertical`, `grid`, `staggered-zigzag`, `split-columns`, `horizontal`).
+- 🎛️ **Modular Side Panel**: Keep the contact card, customize all its fields, remove it completely, or replace it with custom JSX (newsletter, stats, etc.).
+- 🎨 **Deep Theming via CSS Tokens**: 6 curated presets (`dark`, `light`, `cyber`, `emerald`, `sunset`, `minimal`) + full CSS variable overrides.
+- ⚡ **Lightweight & High-Performance**: Tree-shakeable ESM/CJS build under 25 kB CSS and 50 kB JS.
+- ♿ **Strict Accessibility (A11y)**: Automatic focus trap, Escape key dismiss, body scroll lock with scrollbar compensation, and `prefers-reduced-motion` detection.
 
 ---
 
-## 📦 Installation
+## 📦 Installation & Required Dependencies
+
+### 1. Install `vanta-nav` and Peer Dependencies
+
+VantaNav uses **[Motion for React](https://motion.dev)** for GPU-accelerated 60fps animations and **[Lucide React](https://lucide.dev)** for clean icons:
 
 ```bash
 # npm
-npm install vanta-nav motion
+npm install vanta-nav motion lucide-react
 
 # pnpm
-pnpm add vanta-nav motion
+pnpm add vanta-nav motion lucide-react
 
 # yarn
-yarn add vanta-nav motion
+yarn add vanta-nav motion lucide-react
+
+# bun
+bun add vanta-nav motion lucide-react
 ```
 
-> **Note:** `motion` (Motion for React v11 or v12) is declared as a peer dependency.
+### 2. Dependency Breakdown
+
+| Dependency | Required? | Recommended Version | Purpose |
+| :--- | :---: | :--- | :--- |
+| **`react`** | **Yes** | `^18.0.0` or `^19.0.0` | Core UI runtime |
+| **`react-dom`** | **Yes** | `^18.0.0` or `^19.0.0` | Portal & DOM management |
+| **`motion`** | **Yes** | `^11.0.0` or `^12.0.0` | Physics, gestures, and slice animations |
+| **`lucide-react`** | Optional | `^0.400.0`+ | Search, cart, menu, & social icons |
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (60 Seconds)
 
-Import the component and its stylesheet into your application:
+Import `OverlayNavbar`, the TypeScript types, and the **built-in stylesheet**:
 
 ```tsx
+import React from "react";
 import { OverlayNavbar } from "vanta-nav";
 import type { NavItem } from "vanta-nav";
+
+// ⚠️ IMPORTANT: Import styles once in your root or layout file
 import "vanta-nav/styles.css";
 
-const links: NavItem[] = [
+const navigationItems: NavItem[] = [
   { label: "Home", href: "/" },
   {
-    label: "Products",
-    children: [
-      { label: "Design Systems", href: "/products/design-systems", description: "UI Component Kits" },
-      { label: "Templates", href: "/products/templates", description: "Production Ready Apps" },
-    ],
+    label: "Case Studies",
+    href: "/work",
+    badge: "Featured",
+    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
+    description: "High-impact digital products & systems",
   },
-  { label: "Studio", href: "/studio" },
-  { label: "Journal", href: "/journal", badge: "New" },
+  {
+    label: "Agency Reel",
+    href: "/reel",
+    video: "https://assets.mixkit.co/videos/preview/mixkit-abstract-flowing-neon-lights-42993-large.mp4",
+    description: "Watch our kinetic design studio reel",
+  },
+  { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
 
 export default function App() {
   return (
     <OverlayNavbar
-      logo="STUDIO ZERO"
-      items={links}
+      logo="ATELIER"
+      items={navigationItems}
       animation="slice"
-      sliceCount={4}
       theme="dark"
-      position="fixed"
-      showSearch
-      showCart
-      cartCount={3}
-      showThemeToggle
-      cta={{
-        label: "Book a Demo",
-        href: "/contact",
-        variant: "primary",
-      }}
-      closeOnNavigate
+      ctaText="Start Project"
+      ctaHref="/contact"
     />
   );
 }
@@ -94,131 +135,93 @@ export default function App() {
 
 ---
 
-## 🎬 Animation Presets
+## 🖼️ Hover Media Previews (Images & Videos)
 
-VantaNav provides a preset-driven animation system that eliminates boilerplate animation code:
-
-| Preset                  | Description                                                                       |
-| ----------------------- | --------------------------------------------------------------------------------- |
-| `slice` *(Default)* | Multi-panel vertical or horizontal staggered slice reveal with coordinated entry. |
-| `curtain`             | Dual panels meeting from top and bottom.                                          |
-| `split`               | Screen splits into left and right wings revealing the navigation canvas.          |
-| `slide`               | Clean directional slide from`top`, `bottom`, `left`, or `right`.          |
-| `fade`                | Minimal glassmorphic opacity fade and backdrop blur.                              |
-| `scale`               | Center-out radial clip-path and subtle scale expansion.                           |
-
-### Configuring Slice Count & Direction
+Attach photography or autoplaying video reels to any link. When the user hovers, VantaNav transitions the media in real time:
 
 ```tsx
 <OverlayNavbar
-  animation="slice"
-  sliceCount={5}              // 2 to 6 panels
-  sliceDirection="horizontal" // 'vertical' | 'horizontal'
-  duration={0.65}             // seconds
-  stagger={0.08}              // seconds delay between slices
-/>
-```
-
----
-
-## 🖼️ Image & Video Hover Previews
-
-Attach photography or autoplaying video reels directly to any navigation item. When the user hovers over a link, VantaNav transitions the media in real time:
-
-```tsx
-const links: NavItem[] = [
-  {
-    label: "Case Studies",
-    href: "/work",
-    image: "/previews/case-studies.webp",
-    description: "High-impact digital products & design systems",
-  },
-  {
-    label: "Showreel",
-    href: "/reel",
-    video: "/videos/reel-2026.mp4",
-    description: "Watch our kinetic agency studio reel",
-  },
-];
-
-<OverlayNavbar
-  items={links}
+  items={navigationItems}
   mediaPreviewMode="panel" // 'panel' | 'floating' | 'backdrop' | 'none'
 />
 ```
 
 ### Preview Modes
 
-- **`panel`** *(Default)*: Displays the media in an interactive card in the secondary column with title badge and description.
-- **`floating`**: Renders a magnetic floating preview card that tracks the user's mouse position with spring physics.
-- **`backdrop`**: Smoothly crossfades an ambient background video or image behind the entire navigation menu.
-- **`none`**: Standard text-only display.
+| Mode | Description |
+| :--- | :--- |
+| **`panel`** *(Default)* | Shows interactive photo/video card in the secondary column with title badge and summary. |
+| **`floating`** | Renders a magnetic floating preview card that smoothly follows the cursor across the screen. |
+| **`backdrop`** | Ambient cinematic background crossfade behind the entire navigation menu. |
+| **`none`** | Disables media previews (typographic focus). |
 
 ---
 
-## 📐 Modern Layouts & Alignments
+## 📐 Layouts & Directional Alignment
 
-Customize the visual direction, composition, and text alignment of your navigation menu:
+Easily adapt the overlay menu from minimalist vertical typography to editorial grids and asymmetric staggered layouts:
 
 ```tsx
 <OverlayNavbar
-  items={links}
+  items={navigationItems}
   linksLayout="grid"       // 'vertical' | 'grid' | 'staggered-zigzag' | 'split-columns' | 'horizontal'
   linksAlign="center"      // 'left' | 'center' | 'right'
   hoverEffect="underline"  // 'slide' | 'underline' | 'scale' | 'glow'
 />
 ```
 
-| Layout                     | Description                                                                         |
-| -------------------------- | ----------------------------------------------------------------------------------- |
-| `vertical` *(Default)* | Classic high-impact vertical typographic stack.                                     |
-| `grid`                   | Modern 2-column agency responsive grid layout.                                      |
-| `staggered-zigzag`       | Editorial high-fashion asymmetric staggered diagonal flow with alternating offsets. |
-| `split-columns`          | Multi-column categorical columns.                                                   |
-| `horizontal`             | Inline strip flow with responsive wrapping.                                         |
+### Layout Options
+
+- **`vertical`** *(Default)*: Clean high-impact vertical typographic stack with staggered entrance.
+- **`grid`**: Responsive 2-column studio layout with preview cards.
+- **`staggered-zigzag`**: Editorial high-fashion diagonal zig-zag pattern with alternating offsets.
+- **`split-columns`**: Categorical multi-column layout for mega-menu hierarchies.
+- **`horizontal`**: Inline horizontal navigation strip with wrapping.
 
 ---
 
-## 🎛️ Secondary Card Customization & Removal
+## 🎛️ Side Card Customization & Removal
 
-The right-side "Direct Inquiries" card in the overlay can be completely removed, styled with custom contact data, or replaced with any custom React node (e.g., newsletter signup, live metrics, mini player, booking widget):
+The secondary right-side panel ("Direct Inquiries") can be completely customized, replaced, or removed:
 
-### 1. Remove Card Completely (Full-Width Navigation)
-To hide the card and allow the menu links to expand across the full width of the overlay:
+### 1. Remove the Card Completely (Full-Width Menu)
+
 ```tsx
 <OverlayNavbar
-  items={links}
-  showSecondaryPanel={false} // Hides the card and expands navigation full-width
+  items={navigationItems}
+  showSecondaryPanel={false} // 👈 Removes the card & expands links across the full width
 />
 ```
 
-### 2. Custom Contact Information
-To customize the title, email, phone, support hours, or address without writing any JSX:
+### 2. Custom Contact Details
+
 ```tsx
 <OverlayNavbar
-  items={links}
+  items={navigationItems}
   contactInfo={{
     title: "Client Partnerships",
-    description: "Ready to launch your next breakthrough digital experience?",
-    email: "partners@yourstudio.com",
-    phone: "+1 (555) 987-6543",
-    hours: "Available 24/7 for Enterprise Clients",
-    address: "SoHo, New York, NY",
+    description: "Looking for enterprise consulting or design collaboration?",
+    email: "partners@yourdomain.com",
+    phone: "+1 (555) 234-5678",
+    hours: "24/7 Priority Support",
+    address: "SoHo, Manhattan, NY",
   }}
 />
 ```
 
 ### 3. Replace with Any Custom React Component
-You can pass any React node to `secondaryContent` to replace the card entirely:
+
+Pass your own custom component (newsletter, live stats, player, or booking calendar):
+
 ```tsx
 <OverlayNavbar
-  items={links}
+  items={navigationItems}
   secondaryContent={
     <div className="newsletter-card">
       <h3>Stay in the Loop</h3>
-      <p>Receive our weekly architecture and design dispatches.</p>
+      <p>Subscribe for weekly architecture & design insights.</p>
       <form onSubmit={(e) => { e.preventDefault(); alert("Subscribed!"); }}>
-        <input type="email" placeholder="Enter your email" />
+        <input type="email" placeholder="you@company.com" />
         <button type="submit">Join Newsletter</button>
       </form>
     </div>
@@ -228,21 +231,46 @@ You can pass any React node to `secondaryContent` to replace the card entirely:
 
 ---
 
-## 🎨 Theming & Customization
+## 🎭 Animation Presets
 
-VantaNav is built with CSS Custom Properties. You can switch themes via the `theme` prop or override CSS variables directly in your global stylesheet:
+Choose from 6 distinctive physics-based transitions:
+
+```tsx
+<OverlayNavbar
+  animation="slice"
+  sliceCount={4}              // 2 to 6 panels
+  sliceDirection="vertical"   // 'vertical' | 'horizontal'
+  duration={0.65}             // Animation duration in seconds
+  stagger={0.08}              // Delay between slice entrances
+/>
+```
+
+| Preset | Visual Effect |
+| :--- | :--- |
+| **`slice`** *(Signature)* | Multi-panel staggered curtains revealing content with velocity easing. |
+| **`curtain`** | High-fashion theatre drape drop from top to bottom. |
+| **`split`** | Center-out cinematic division parting from center axis. |
+| **`slide`** | Directional slide from `top`, `bottom`, `left`, or `right`. |
+| **`fade`** | Minimal glassmorphic opacity fade with backdrop blur. |
+| **`scale`** | Radial clip-path expansion with subtle scale acceleration. |
+
+---
+
+## 🎨 Theming & CSS Variables
+
+Switch themes with the `theme` prop or override CSS variables globally:
 
 ```tsx
 <OverlayNavbar theme="cyber" />
 ```
 
-Available presets: `dark` (default), `light`, `cyber`, `emerald`, `sunset`, `minimal`.
+Available theme presets: `dark` (default), `light`, `cyber`, `emerald`, `sunset`, `minimal`.
 
-### CSS Variables Reference
+### CSS Custom Properties Reference
 
 ```css
 :root {
-  /* Surface & Typography */
+  /* Colors */
   --vantanav-bg: #0b0c10;
   --vantanav-surface: #14161f;
   --vantanav-surface-hover: #1f2330;
@@ -259,7 +287,7 @@ Available presets: `dark` (default), `light`, `cyber`, `emerald`, `sunset`, `min
   --vantanav-slice-bg-4: #191d2a;
   --vantanav-slice-bg-5: #1e2333;
 
-  /* Dimensions & Glassmorphism */
+  /* Dimensions & Blur */
   --vantanav-header-height: 72px;
   --vantanav-glass-blur: 16px;
   --vantanav-overlay-backdrop: rgba(0, 0, 0, 0.75);
@@ -268,9 +296,9 @@ Available presets: `dark` (default), `light`, `cyber`, `emerald`, `sunset`, `min
 
 ---
 
-## 🧱 Advanced Composition (Compound Components)
+## 🧩 Compound Component Architecture
 
-If you require fine-grained control over the header layout or overlay content, use the composable primitives:
+For fully bespoke headers, compose primitives directly:
 
 ```tsx
 import {
@@ -291,7 +319,7 @@ export function CustomHeader() {
       <NavbarBrand href="/">ATELIER</NavbarBrand>
 
       <NavbarActions>
-        <NavbarSearch onSearch={(q) => console.log(q)} />
+        <NavbarSearch onSearch={(query) => console.log(query)} />
         <NavbarThemeToggle />
         <NavbarTrigger />
       </NavbarActions>
@@ -304,7 +332,7 @@ export function CustomHeader() {
           </div>
         }
       >
-        <NavbarLinks items={myCustomLinks} />
+        <NavbarLinks items={navigationItems} />
       </NavbarOverlay>
     </OverlayNavbar>
   );
@@ -313,103 +341,63 @@ export function CustomHeader() {
 
 ---
 
-## 🌐 Next.js & Client Boundary
+## 🌐 Next.js & Server Components Guide
 
-Because VantaNav utilizes browser window events (Escape key, scroll-locking, focus management) and Motion for React animations, specify the `"use client"` directive when wrapping in Next.js App Router:
+Because VantaNav utilizes browser window events (Escape key, body scroll-lock, portal mounting) and Motion for React, add `"use client"` at the top of your nav wrapper:
 
 ```tsx
-// components/SiteNav.tsx
+// components/SiteHeader.tsx
 "use client";
 
 import { OverlayNavbar } from "vanta-nav";
 import "vanta-nav/styles.css";
 
-export function SiteNav() {
-  return <OverlayNavbar logo="MY APP" items={...} />;
+export function SiteHeader() {
+  return <OverlayNavbar logo="MY APP" items={navigationItems} />;
 }
 ```
 
 ---
 
-## 🧭 Router Integration (Next.js / React Router)
+## 📋 Complete Props API Reference
 
-VantaNav uses standard semantic HTML anchor tags (`<a>`) and buttons. You can pass custom click handlers or intercept navigation:
+### `<OverlayNavbar />`
 
-```tsx
-import { useNavigate } from "react-router-dom"; // or useRouter in Next.js
-
-const links: NavItem[] = [
-  {
-    label: "Dashboard",
-    onClick: (e) => {
-      e.preventDefault();
-      navigate("/dashboard");
-    },
-  },
-];
-```
-
----
-
-## 📖 API Reference
-
-### `OverlayNavbar` Props
-
-| Prop                    | Type                                    | Default        | Description                            |
-| ----------------------- | --------------------------------------- | -------------- | -------------------------------------- |
-| `logo`                | `ReactNode`                           | `"VANTANAV"` | Brand logo or custom component         |
-| `items`               | `NavItem[]`                           | `[]`         | Array of navigation link items         |
-| `animation`           | `AnimationPreset`                     | `"slice"`    | Overlay reveal preset                  |
-| `sliceCount`          | `number`                              | `4`          | Number of slices for slice animation   |
-| `sliceDirection`      | `"vertical" \| "horizontal"`           | `"vertical"` | Direction of slice movement            |
-| `slideDirection`      | `"top" \| "bottom" \| "left" \| "right"` | `"top"`      | Direction for slide preset             |
-| `duration`            | `number`                              | `0.65`       | Animation duration in seconds          |
-| `stagger`             | `number`                              | `0.08`       | Stagger delay between slices and items |
-| `position`            | `"fixed" \| "sticky" \| "relative"`     | `"fixed"`    | Navbar layout positioning              |
-| `theme`               | `ThemeName`                           | `"dark"`     | Active theme palette preset            |
-| `closeOnNavigate`     | `boolean`                             | `true`       | Close overlay when a link is clicked   |
-| `closeOnEscape`       | `boolean`                             | `true`       | Dismiss overlay on Escape key          |
-| `closeOnOutsideClick` | `boolean`                             | `true`       | Dismiss overlay when clicking backdrop |
-| `lockScroll`          | `boolean`                             | `true`       | Prevent background scrolling when open |
-| `showSearch`          | `boolean`                             | `false`      | Display search trigger input in header |
-| `showCart`            | `boolean`                             | `false`      | Display shopping cart icon and badge   |
-| `cartCount`           | `number`                              | `0`          | Number of items in shopping cart badge |
-| `showThemeToggle`     | `boolean`                             | `false`      | Display light/dark theme switch icon   |
-| `cta`                 | `NavbarCTAProps`                      | `undefined`  | Call-to-action button configuration    |
-| `secondaryContent`    | `ReactNode`                           | `undefined`  | Custom panel rendered alongside links  |
-| `onOpen`              | `() => void`                          | `undefined`  | Callback fired when overlay opens      |
-| `onClose`             | `() => void`                          | `undefined`  | Callback fired when overlay closes     |
-| `onNavigate`          | `(item: NavItem) => void`             | `undefined`  | Callback fired on link click           |
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `items` | `NavItem[]` | `[]` | Array of navigation links, dropdowns, and media previews |
+| `logo` | `ReactNode` | `"VANTANAV"` | Brand logo element or text string |
+| `animation` | `'slice' \| 'curtain' \| 'split' \| 'slide' \| 'fade' \| 'scale'` | `'slice'` | Active overlay animation preset |
+| `theme` | `'dark' \| 'light' \| 'cyber' \| 'emerald' \| 'sunset' \| 'minimal'` | `'dark'` | Visual theme palette |
+| `sliceCount` | `number` (2 to 6) | `5` | Number of slices for the `slice` animation |
+| `sliceDirection` | `'vertical' \| 'horizontal'` | `'vertical'` | Slice orientation |
+| `duration` | `number` | `0.65` | Animation duration in seconds |
+| `stagger` | `number` | `0.08` | Delay between consecutive slices |
+| `mediaPreviewMode` | `'panel' \| 'floating' \| 'backdrop' \| 'none'` | `'panel'` | Hover video/image preview presentation |
+| `linksLayout` | `'vertical' \| 'grid' \| 'staggered-zigzag' \| 'split-columns' \| 'horizontal'` | `'vertical'` | Layout geometry of navigation items |
+| `linksAlign` | `'left' \| 'center' \| 'right'` | `'left'` | Typographic text alignment |
+| `hoverEffect` | `'slide' \| 'underline' \| 'scale' \| 'glow'` | `'slide'` | Link hover micro-interaction |
+| `showSecondaryPanel`| `boolean` | `true` | When `false`, hides the side card and expands menu full-width |
+| `secondaryContent` | `ReactNode` | `undefined` | Custom JSX to replace the side card completely |
+| `contactInfo` | `ContactInfo` | *(Default)* | Custom text, email, phone, hours, and address |
+| `showSearch` | `boolean` | `true` | Show search bar in header |
+| `showCart` | `boolean` | `true` | Show shopping cart button in header |
+| `showThemeToggle` | `boolean` | `true` | Show light/dark mode switch in header |
+| `ctaText` | `string` | `undefined` | Optional CTA button label |
+| `ctaHref` | `string` | `undefined` | Optional CTA destination link |
 
 ---
 
-## 🧪 Development & Scripts
+## ♿ Accessibility (A11y)
 
-```bash
-# Start local interactive demo playground
-npm run dev
-
-# Build production bundle (ESM, CJS, DTS, CSS)
-npm run build
-
-# Run unit test suite
-npm run test
-
-# Run test coverage
-npm run test:coverage
-
-# Run TypeScript typecheck
-npm run typecheck
-
-# Run linter
-npm run lint
-
-# Validate npm pack dry-run
-npm run pack:check
-```
+- **Focus Trapping**: Keyboard focus is trapped within the overlay when opened and returned to the trigger button when dismissed.
+- **Escape Key**: Automatically dismisses the overlay and returns focus.
+- **Body Scroll Lock**: Background scroll is locked without page jump or layout shift by compensating for scrollbar width.
+- **Reduced Motion**: Automatically respects `prefers-reduced-motion: reduce` by replacing multi-slice choreography with instant, comfortable fades.
+- **WAI-ARIA Compliant**: Proper `aria-expanded`, `aria-haspopup`, `aria-controls`, and `role="dialog"` attributes.
 
 ---
 
 ## 📄 License
 
-MIT © Ritik
+MIT © [RitikWeb22](https://github.com/RitikWeb22)
