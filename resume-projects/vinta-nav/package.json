@@ -1,0 +1,95 @@
+{
+  "name": "vanta-nav",
+  "version": "1.0.0",
+  "description": "Premium animated overlay navigation system for modern React applications with slice reveals, responsive mega-menus, and theme support.",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./styles.css": "./dist/index.css"
+  },
+  "files": [
+    "dist",
+    "assets",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsup && vite build --outDir dist-demo",
+    "build:lib": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/ --ext .ts,.tsx --max-warnings 0",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "preview": "vite preview",
+    "pack:check": "npm pack --dry-run"
+  },
+  "keywords": [
+    "react",
+    "navbar",
+    "navigation",
+    "overlay-navigation",
+    "motion",
+    "slice-animation",
+    "hamburger-menu",
+    "mega-menu",
+    "fullscreen-menu",
+    "ui-component",
+    "animation",
+    "accessible-navigation"
+  ],
+  "author": "ritik2210 <support@vantanav.io>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RitikWeb22/cohort-2.0.git",
+    "directory": "resume-projects/vinta-nav"
+  },
+  "bugs": {
+    "url": "https://github.com/RitikWeb22/cohort-2.0/issues"
+  },
+  "homepage": "https://github.com/RitikWeb22/cohort-2.0/tree/main/resume-projects/vinta-nav#readme",
+  "license": "MIT",
+  "peerDependencies": {
+    "motion": "^11.0.0 || ^12.0.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "motion": {
+      "optional": false
+    }
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@types/node": "^22.13.9",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@typescript-eslint/eslint-plugin": "^8.71.1",
+    "@typescript-eslint/parser": "^8.71.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^3.0.7",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "jsdom": "^26.0.0",
+    "lucide-react": "^0.475.0",
+    "motion": "^12.4.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsup": "^8.3.6",
+    "typescript": "^5.7.3",
+    "vite": "^6.2.0",
+    "vitest": "^3.0.7"
+  }
+}

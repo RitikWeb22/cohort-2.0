@@ -1,0 +1,142 @@
+/* Theme Presets */
+
+/* Dark (Default obsidian) */
+.vantanav-theme-dark,
+[data-vantanav-theme="dark"] {
+  --vantanav-bg: #0b0c10;
+  --vantanav-surface: #14161f;
+  --vantanav-surface-hover: #1f2330;
+  --vantanav-fg: #f3f4f6;
+  --vantanav-fg-muted: #9ca3af;
+  --vantanav-fg-subtle: #6b7280;
+  --vantanav-accent: #6366f1;
+  --vantanav-accent-hover: #4f46e5;
+  --vantanav-accent-light: rgba(99, 102, 241, 0.15);
+  --vantanav-border: rgba(255, 255, 255, 0.08);
+  --vantanav-border-hover: rgba(255, 255, 255, 0.18);
+  --vantanav-slice-bg-1: #090a0f;
+  --vantanav-slice-bg-2: #0e1017;
+  --vantanav-slice-bg-3: #131620;
+  --vantanav-slice-bg-4: #191d2a;
+  --vantanav-slice-bg-5: #1e2333;
+  --vantanav-glass-bg: rgba(14, 16, 23, 0.85);
+  --vantanav-overlay-backdrop: rgba(0, 0, 0, 0.75);
+}
+
+/* Light (Crisp modern slate) */
+.vantanav-theme-light,
+[data-vantanav-theme="light"] {
+  --vantanav-bg: #ffffff;
+  --vantanav-surface: #f8fafc;
+  --vantanav-surface-hover: #f1f5f9;
+  --vantanav-fg: #0f172a;
+  --vantanav-fg-muted: #64748b;
+  --vantanav-fg-subtle: #94a3b8;
+  --vantanav-accent: #2563eb;
+  --vantanav-accent-hover: #1d4ed8;
+  --vantanav-accent-light: rgba(37, 99, 235, 0.1);
+  --vantanav-border: rgba(15, 23, 42, 0.08);
+  --vantanav-border-hover: rgba(15, 23, 42, 0.16);
+  --vantanav-slice-bg-1: #ffffff;
+  --vantanav-slice-bg-2: #f8fafc;
+  --vantanav-slice-bg-3: #f1f5f9;
+  --vantanav-slice-bg-4: #e2e8f0;
+  --vantanav-slice-bg-5: #cbd5e1;
+  --vantanav-glass-bg: rgba(255, 255, 255, 0.88);
+  --vantanav-overlay-backdrop: rgba(15, 23, 42, 0.4);
+}
+
+/* Cyber (Neon violet & cyan) */
+.vantanav-theme-cyber,
+[data-vantanav-theme="cyber"] {
+  --vantanav-bg: #060814;
+  --vantanav-surface: #0c1026;
+  --vantanav-surface-hover: #151a3d;
+  --vantanav-fg: #00f3ff;
+  --vantanav-fg-muted: #a78bfa;
+  --vantanav-fg-subtle: #6d28d9;
+  --vantanav-accent: #f43f5e;
+  --vantanav-accent-hover: #e11d48;
+  --vantanav-accent-light: rgba(244, 63, 94, 0.2);
+  --vantanav-border: rgba(0, 243, 255, 0.2);
+  --vantanav-border-hover: rgba(0, 243, 255, 0.4);
+  --vantanav-slice-bg-1: #03040c;
+  --vantanav-slice-bg-2: #080b1e;
+  --vantanav-slice-bg-3: #0e1233;
+  --vantanav-slice-bg-4: #141b47;
+  --vantanav-slice-bg-5: #1c245c;
+  --vantanav-glass-bg: rgba(12, 16, 38, 0.9);
+  --vantanav-overlay-backdrop: rgba(3, 4, 12, 0.85);
+  --vantanav-shadow-glow: 0 0 30px rgba(0, 243, 255, 0.35);
+}
+
+/* Emerald (Luxury deep forest & mint gold) */
+.vantanav-theme-emerald,
+[data-vantanav-theme="emerald"] {
+  --vantanav-bg: #04130d;
+  --vantanav-surface: #082319;
+  --vantanav-surface-hover: #0c3325;
+  --vantanav-fg: #ecfdf5;
+  --vantanav-fg-muted: #6ee7b7;
+  --vantanav-fg-subtle: #059669;
+  --vantanav-accent: #10b981;
+  --vantanav-accent-hover: #059669;
+  --vantanav-accent-light: rgba(16, 185, 129, 0.15);
+  --vantanav-border: rgba(110, 231, 183, 0.15);
+  --vantanav-border-hover: rgba(110, 231, 183, 0.3);
+  --vantanav-slice-bg-1: #020d09;
+  --vantanav-slice-bg-2: #051a12;
+  --vantanav-slice-bg-3: #08281c;
+  --vantanav-slice-bg-4: #0d3b2a;
+  --vantanav-slice-bg-5: #124d37;
+  --vantanav-glass-bg: rgba(8, 35, 25, 0.85);
+  --vantanav-overlay-backdrop: rgba(2, 13, 9, 0.8);
+  --vantanav-shadow-glow: 0 0 25px rgba(16, 185, 129, 0.25);
+}
+
+/* Sunset (Warm coral & rich amber) */
+.vantanav-theme-sunset,
+[data-vantanav-theme="sunset"] {
+  --vantanav-bg: #120908;
+  --vantanav-surface: #221210;
+  --vantanav-surface-hover: #331a17;
+  --vantanav-fg: #fff1f0;
+  --vantanav-fg-muted: #fca5a5;
+  --vantanav-fg-subtle: #b91c1c;
+  --vantanav-accent: #f97316;
+  --vantanav-accent-hover: #ea580c;
+  --vantanav-accent-light: rgba(249, 115, 22, 0.15);
+  --vantanav-border: rgba(254, 202, 202, 0.12);
+  --vantanav-border-hover: rgba(254, 202, 202, 0.25);
+  --vantanav-slice-bg-1: #0a0404;
+  --vantanav-slice-bg-2: #160a09;
+  --vantanav-slice-bg-3: #26110f;
+  --vantanav-slice-bg-4: #381a17;
+  --vantanav-slice-bg-5: #4b231f;
+  --vantanav-glass-bg: rgba(34, 18, 16, 0.85);
+  --vantanav-overlay-backdrop: rgba(10, 4, 4, 0.8);
+  --vantanav-shadow-glow: 0 0 25px rgba(249, 115, 22, 0.25);
+}
+
+/* Minimal (High-contrast Swiss architectural) */
+.vantanav-theme-minimal,
+[data-vantanav-theme="minimal"] {
+  --vantanav-bg: #000000;
+  --vantanav-surface: #111111;
+  --vantanav-surface-hover: #222222;
+  --vantanav-fg: #ffffff;
+  --vantanav-fg-muted: #888888;
+  --vantanav-fg-subtle: #555555;
+  --vantanav-accent: #ffffff;
+  --vantanav-accent-hover: #cccccc;
+  --vantanav-accent-light: rgba(255, 255, 255, 0.1);
+  --vantanav-border: #222222;
+  --vantanav-border-hover: #444444;
+  --vantanav-slice-bg-1: #050505;
+  --vantanav-slice-bg-2: #0f0f0f;
+  --vantanav-slice-bg-3: #171717;
+  --vantanav-slice-bg-4: #222222;
+  --vantanav-slice-bg-5: #2e2e2e;
+  --vantanav-glass-bg: rgba(17, 17, 17, 0.95);
+  --vantanav-overlay-backdrop: rgba(0, 0, 0, 0.9);
+}
