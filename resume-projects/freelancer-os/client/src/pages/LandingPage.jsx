@@ -5,6 +5,15 @@ import { Footer } from '../components/layout/Footer';
 import { siteConfig } from '../config/site';
 import { PRICING_PLANS } from '../config/plans';
 
+const CURRENCIES = {
+  USD: { label: 'USD ($)', symbol: '$', defaultRate: 75, defaultFloor: 1200, step: 50 },
+  EUR: { label: 'EUR (€)', symbol: '€', defaultRate: 70, defaultFloor: 1100, step: 50 },
+  GBP: { label: 'GBP (£)', symbol: '£', defaultRate: 60, defaultFloor: 950, step: 25 },
+  INR: { label: 'INR (₹)', symbol: '₹', defaultRate: 2500, defaultFloor: 35000, step: 500 },
+  CAD: { label: 'CAD ($)', symbol: '$', defaultRate: 95, defaultFloor: 1500, step: 50 },
+  AUD: { label: 'AUD ($)', symbol: '$', defaultRate: 110, defaultFloor: 1700, step: 50 },
+};
+
 export function LandingPage() {
   // Mobile Nav Toggle
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
