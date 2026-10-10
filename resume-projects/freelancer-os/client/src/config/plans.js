@@ -1,81 +1,75 @@
-export const PLANS = [
-  {
+/**
+ * Floorly SaaS Subscription Plans Configuration
+ * Unified configuration shared across marketing and application workspace.
+ */
+
+export const PLANS = {
+  free: {
     id: 'free',
     name: 'Starter',
-    badge: 'Free Forever',
-    description: 'Perfect for new freelancers exploring scope and pricing clarity.',
-    monthlyPrice: 0,
-    annualPricePerMonth: 0,
-    annualBilledTotal: 0,
-    clientLimit: 2,
+    tagline: 'Try the workflow on your first clients.',
+    monthly: 0,
+    annual: 0,
+    maxClients: 2,
     features: [
-      'Up to 2 active clients',
-      'Standard AI requirement scoping',
-      'Protected floor pricing calculator',
-      'Basic proposal generator',
-      'Manual invoice & payment logging',
+      '2 active clients',
+      'Standard requirement analyzer',
+      'Manual payment logging',
+      'Basic proposals and invoices',
     ],
-    ctaText: 'Current Plan',
+    cta: 'Start free',
     popular: false,
   },
-  {
+  solo: {
     id: 'solo',
     name: 'Solo',
-    badge: 'Popular for Freelancers',
-    description: 'For active independent professionals building steady contract pipeline.',
-    monthlyPrice: 9,
-    annualPricePerMonth: 7.50, // 17% off
-    annualBilledTotal: 90,
-    clientLimit: 10,
+    tagline: 'For independents sending proposals every week.',
+    monthly: 9,
+    annual: 7.5,
+    maxClients: 10,
     features: [
-      'Up to 10 active clients',
-      'Unlimited proposals & quotations',
-      'Automated floor protection guard',
-      'Stripe & PayPal payment checkout links',
-      'Full invoice management & receipts',
-      'Realistic profit & margin calculation',
+      'Unlimited proposals',
+      'Price floor protection',
+      'Invoices and payment tracking',
+      'Multi-currency and tax',
     ],
-    ctaText: 'Upgrade to Solo',
+    cta: 'Choose Solo',
     popular: false,
   },
-  {
+  pro: {
     id: 'pro',
     name: 'Pro',
-    badge: 'Most Popular',
-    description: 'For busy consultants who want end-to-end automation and engineering artifacts.',
-    monthlyPrice: 19,
-    annualPricePerMonth: 15.80, // 17% off
-    annualBilledTotal: 190,
-    clientLimit: null, // unlimited
+    tagline: 'For ambitious builders with a full pipeline.',
+    monthly: 19,
+    annual: 15.8,
+    maxClients: Infinity,
     features: [
-      'Unlimited active clients',
-      'Autonomous AI Requirement Analyzer',
-      'Client-Specific AGENTS.md generator',
-      'High-resolution PDF proposal & invoice exports',
-      'Advanced financial metrics & cashflow trends',
-      'Document versioning & change request tracking',
+      'Unlimited clients',
+      'Autonomous AI analyzer',
+      'PDF proposals and SOW',
+      'AGENTS.md generator',
+      'Profit analytics',
     ],
-    ctaText: 'Upgrade to Pro',
+    cta: 'Choose Pro',
     popular: true,
   },
-  {
+  agency: {
     id: 'agency',
     name: 'Agency',
-    badge: 'Power Scaling',
-    description: 'For boutique studios, agencies, and teams delivering multi-currency projects.',
-    monthlyPrice: 49,
-    annualPricePerMonth: 40.70, // 17% off
-    annualBilledTotal: 490,
-    clientLimit: null, // unlimited
+    tagline: 'For studios with a team and brand to protect.',
+    monthly: 49,
+    annual: 40.7,
+    maxClients: Infinity,
     features: [
-      'Team members & multiple seats',
-      'White-label proposals & customized branding',
-      'Multi-currency invoices (USD, EUR, GBP, INR, etc.)',
-      'Custom margin rules & rate cards',
-      'Priority Gemini AI response quota',
-      'Dedicated SLA & direct support',
+      'Everything in Pro',
+      'Team members',
+      'White-label proposals',
+      'Custom margin rules',
+      'Priority AI processing',
     ],
-    ctaText: 'Upgrade to Agency',
+    cta: 'Choose Agency',
     popular: false,
   },
-];
+};
+
+export const PRICING_PLANS = Object.values(PLANS);

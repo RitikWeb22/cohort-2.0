@@ -1,0 +1,25 @@
+User-agent: *
+Allow: /
+Allow: /terms
+Allow: /privacy
+Allow: /refund-policy
+Allow: /contact
+Allow: /login
+Allow: /signup
+
+# Disallow private workspaces and tokenized client documents
+Disallow: /p/
+Disallow: /i/
+Disallow: /dashboard/
+Disallow: /analyzer/
+Disallow: /proposals/
+Disallow: /clients/
+Disallow: /projects/
+Disallow: /invoices/
+Disallow: /expenses/
+Disallow: /templates/
+Disallow: /pricing-rules/
+Disallow: /agents-doc/
+Disallow: /settings/
+
+Sitemap: https://floorly.com/sitemap.xml

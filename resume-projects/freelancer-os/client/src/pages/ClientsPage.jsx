@@ -25,6 +25,7 @@ import {
   X,
   FileText,
 } from 'lucide-react';
+import { PLANS } from '../config/plans';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/useAuthStore';
 import { useNotificationStore } from '../store/useNotificationStore';
@@ -56,7 +57,7 @@ export function ClientsPage() {
 
   const userPlan = (user?.plan || 'starter').toLowerCase();
   const isStarter = ['free', 'starter'].includes(userPlan);
-  const maxStarterClients = 2;
+  const maxStarterClients = PLANS.free.maxClients;
 
   // Set document title
   useEffect(() => {

@@ -858,10 +858,10 @@ export function ProjectsPage() {
           </div>
         </div>
 
-        <div className="card-premium p-6 bg-gradient-to-br from-white to-indigo-50/30">
-          <div className="flex items-center justify-between text-indigo-700">
+        <div className="card-premium p-6 bg-gradient-to-br from-white to-brand-50/30">
+          <div className="flex items-center justify-between text-brand-700">
             <span className="text-xs font-semibold uppercase tracking-wider">Scope Integrity</span>
-            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+            <div className="p-2 bg-brand-50 text-brand-600 rounded-lg">
               <ShieldCheck className="w-4 h-4" />
             </div>
           </div>
