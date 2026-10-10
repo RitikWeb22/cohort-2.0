@@ -32,6 +32,7 @@ export const PLANS = {
       'Strict Floor Guard Protection',
       'Invoices & Payment Tracking',
       'PayPal & Bank Wire Instructions',
+      'Client-specific AGENTS.md Generator',
       'Print-ready A4 PDF Documents',
     ],
   },

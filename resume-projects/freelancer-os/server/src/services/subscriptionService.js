@@ -55,7 +55,7 @@ export function getSubscriptionDetails(user) {
 
   const limits = {
     maxClients: activePlanConfig.maxClients, // 2 for free, 10 for solo, Infinity for pro/agency
-    canGenerateAgentsDoc: ['pro', 'agency'].includes(effectivePlan),
+    canGenerateAgentsDoc: ['solo', 'pro', 'agency'].includes(effectivePlan),
     canUseWhiteLabel: effectivePlan === 'agency',
   };
 

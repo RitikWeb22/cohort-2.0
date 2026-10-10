@@ -31,6 +31,7 @@ export function AgentsDocPage() {
   const [markdownContent, setMarkdownContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   const isLocked = false;
 
@@ -68,12 +69,14 @@ export function AgentsDocPage() {
   const generateDoc = async (payload = {}) => {
     try {
       setIsGenerating(true);
+      setErrorMsg(null);
       const res = await api.generateAgentsDoc(payload);
       if (res?.markdown) {
         setMarkdownContent(res.markdown);
       }
     } catch (err) {
       console.error('Failed to generate instructions document:', err);
+      setErrorMsg(err.message || 'Failed to generate document');
     } finally {
       setIsGenerating(false);
     }
@@ -149,7 +152,11 @@ export function AgentsDocPage() {
         </div>
       </div>
 
-
+      {errorMsg && (
+        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-3 text-xs sm:text-sm">
+          <span className="font-semibold">{errorMsg}</span>
+        </div>
+      )}
 
       {/* Control Bar */}
       <div className="card-premium p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">

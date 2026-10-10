@@ -31,6 +31,7 @@ export const PLANS = {
       'Unlimited proposals',
       'Price floor protection',
       'Invoices and payment tracking',
+      'AGENTS.md generator',
       'Multi-currency and tax',
     ],
     cta: 'Choose Solo',

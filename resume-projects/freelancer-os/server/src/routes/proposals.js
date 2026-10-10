@@ -7,6 +7,7 @@ import { Project } from '../models/Project.js';
 import { ActivityLog } from '../models/ActivityLog.js';
 import { requireAuth } from '../middleware/auth.js';
 import { PricingEngine } from '../services/pricingEngine.js';
+import { generateProposalPdf } from '../services/pdfService.js';
 
 const router = express.Router();
 router.use(requireAuth);
@@ -460,6 +461,44 @@ router.post('/:id/convert-to-project', async (req, res) => {
     res.status(201).json({ success: true, project: projectObj, proposal });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Export proposal PDF
+router.get('/:id/pdf', async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const proposal = await Proposal.findOne({ _id: req.params.id, userId });
+    if (!proposal) {
+      return res.status(404).json({ success: false, error: 'Proposal not found' });
+    }
+
+    const client = await Client.findOne({ _id: proposal.clientId, userId });
+
+    const pdfBuffer = await generateProposalPdf({
+      proposal: proposal.toObject ? proposal.toObject() : proposal,
+      client: client ? (client.toObject ? client.toObject() : client) : null,
+      user: req.user.toObject ? req.user.toObject() : req.user,
+    });
+
+    const propNum = proposal.proposalNumber || 'PROP';
+    const effClient = client || proposal.client;
+    const clientName = (effClient?.company || effClient?.name || 'Client')
+      .trim()
+      .replace(/[^a-zA-Z0-9_-]/g, '_');
+
+    const filename = `Proposal-${propNum}-${clientName}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.end(pdfBuffer);
+  } catch (err) {
+    console.error('Proposal PDF export error:', err);
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 });
 
