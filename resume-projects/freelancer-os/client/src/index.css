@@ -1,0 +1,333 @@
+@import './styles/print.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --page: #FAF5EA;
+    --surface: #FFFFFF;
+    --cobalt: #0047AB;
+    --cobalt-dark: #003A8C;
+    --cobalt-tint: #E8F0FB;
+    --sun: #FFC72C;
+    --sun-tint: #FFF4CC;
+    --ink: #0E1A2B;
+    --muted: #5B6676;
+    --line: #E8E0CF;
+    --success: #067647;
+    --success-tint: #E7F6EC;
+    --warning: #B54708;
+    --warning-tint: #FEF0C7;
+    --error: #B42318;
+    --error-tint: #FEE4E2;
+    --white: #FFFFFF;
+    --r: 14px;
+
+    /* Workspace internal aliases */
+    --bg-main: #FAF5EA;
+    --surface-card: #FFFFFF;
+    --border-subtle: #E8E0CF;
+  }
+
+  body {
+    background-color: var(--page);
+    color: var(--ink);
+    font-family: 'Instrument Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, .font-heading {
+    font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .card-premium {
+    @apply bg-white border border-charcoal-200/90 rounded-xl shadow-subtle hover:border-charcoal-300 transition-all duration-200;
+  }
+  .card-hover {
+    @apply hover:shadow-card hover:border-brand-300 transition-all duration-200;
+  }
+
+  /* Spatial UI Glassmorphism & Depth Layers */
+  .spatial-glass {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 
+      0 24px 48px -12px rgba(89, 60, 143, 0.10),
+      0 4px 12px -2px rgba(39, 34, 31, 0.04),
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+  }
+
+  .spatial-glass-subtle {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 
+      0 12px 24px -8px rgba(39, 34, 31, 0.06),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .spatial-orbit {
+    animation: spatialFloat 5s ease-in-out infinite;
+  }
+
+  .spatial-orbit-delayed {
+    animation: spatialFloat 6.5s ease-in-out 1.8s infinite;
+  }
+
+  .spatial-orbit-rev {
+    animation: spatialFloatRev 5.8s ease-in-out 0.8s infinite;
+  }
+
+  @keyframes spatialFloat {
+    0%, 100% {
+      transform: translateY(0px) translateZ(0px);
+    }
+    50% {
+      transform: translateY(-9px) translateZ(10px);
+    }
+  }
+
+  @keyframes spatialFloatRev {
+    0%, 100% {
+      transform: translateY(0px) translateZ(0px);
+    }
+    50% {
+      transform: translateY(8px) translateZ(10px);
+    }
+  }
+  .badge-neutral {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-charcoal-100 text-charcoal-700 border border-charcoal-200;
+  }
+  .badge-success {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background-color: #F2F9F5;
+    color: #2E583E;
+    border: 1px solid #B8DFC7;
+  }
+  .badge-mint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: #E3F3EA;
+    color: #1E3A29;
+    border: 1px solid #A8D5BA;
+  }
+  .badge-warning {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200;
+  }
+  .badge-sun {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sun-100 text-amber-900 border border-sun-300;
+  }
+  .badge-danger {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200;
+  }
+  .badge-brand {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-700 border border-brand-200;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-medium text-sm rounded-lg shadow-sm transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-white hover:bg-charcoal-50 active:bg-charcoal-100 text-charcoal-700 font-medium text-sm rounded-lg border border-charcoal-200 shadow-subtle transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-mint {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    background-color: #A8D5BA;
+    color: #18130B;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 150ms ease;
+  }
+  .btn-mint:hover {
+    background-color: #7EB994;
+  }
+  .btn-mint:active {
+    background-color: #5A9973;
+  }
+  .btn-sun {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-sun-400 hover:bg-sun-500 active:bg-amber-500 text-charcoal-900 font-semibold text-sm rounded-lg shadow-sm transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-3 py-1.5 text-charcoal-600 hover:text-charcoal-900 hover:bg-charcoal-100 rounded-lg text-sm font-medium transition-colors;
+  }
+  .input-field {
+    @apply w-full px-3.5 py-2 bg-white border border-charcoal-200 rounded-lg text-sm text-charcoal-900 placeholder-charcoal-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all;
+  }
+}
+
+/* Professional Print Stylesheet for documents and PDFs */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm;
+  }
+
+  *, *:before, *:after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-sizing: border-box !important;
+  }
+
+  html, body {
+    background: #FFFFFF !important;
+    color: #0F172A !important;
+    font-size: 10pt !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+    width: 100% !important;
+  }
+
+  /* When printing from a preview modal, hide the main application shell entirely */
+  body.document-preview-open #root {
+    display: none !important;
+  }
+
+  /* Fallback: if browser doesn't have class or prints directly, hide standard app shell */
+  aside, header, nav, footer, .no-print, button {
+    display: none !important;
+  }
+
+  /* Unfix and un-scroll the modal container so content flows across multiple pages */
+  .print-modal-overlay {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    background: #FFFFFF !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  .print-modal-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  /* Printable document card styling for clean multi-page A4 flow */
+  .printable-document {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #FFFFFF !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    font-size: 9.5pt !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Prevent awkward page-breaks inside components and signatures */
+  .avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Optional forced break if needed */
+  .force-page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  table {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    width: 100% !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+}
+
+/* Custom subtle scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line, #E8E0CF) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--line, #E8E0CF);
+  border-radius: 999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--muted, #5B6676);
+}
+
+/* Thin 6px scrollbar for simulator (no buttons, no visible track) */
+.simulator-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line, #E8E0CF) transparent;
+}
+.simulator-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.simulator-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.simulator-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--line, #E8E0CF);
+  border-radius: 9999px;
+}
+.simulator-scrollbar::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+

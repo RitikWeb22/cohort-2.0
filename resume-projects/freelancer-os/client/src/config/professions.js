@@ -1,0 +1,183 @@
+// Canonical configuration of freelancer fields/professions for Floorly (Client)
+
+export const PROFESSIONS = {
+  web_developer: {
+    id: 'web_developer',
+    name: 'Web & Software Developer',
+    shortName: 'Developer',
+    badge: 'Code & Systems',
+    description: 'Frontend, backend, fullstack web applications, APIs, SaaS architectures, and e-commerce stores.',
+    defaultHourlyRate: 50,
+    defaultMinHourlyRate: 35,
+    defaultMinProjectFee: 300,
+    categories: [
+      { id: 'landing-pages', label: 'Landing Page (8-14 hrs)', floor: 500 },
+      { id: 'business-websites', label: 'Business Website (16-28 hrs)', floor: 1000 },
+      { id: 'react-nextjs', label: 'React & Next.js App', floor: 2500 },
+      { id: 'e-commerce', label: 'E-Commerce Store', floor: 3000 },
+      { id: 'custom-web-apps', label: 'Custom Web Application', floor: 5000 },
+      { id: 'api-backend', label: 'Backend & API Services', floor: 2000 },
+      { id: 'ai-integrations', label: 'AI & Chatbots Integration', floor: 3500 },
+      { id: 'saas-applications', label: 'SaaS Platform Architecture', floor: 8000 },
+    ],
+    defaultProposalItems: [
+      { description: 'Landing Page Hero Section & Value Hook', hours: 3, rate: 50, amount: 150 },
+      { description: 'Interactive Features & Content Showcase', hours: 3, rate: 50, amount: 150 },
+      { description: 'Lead Capture Form & CRM Integration', hours: 2, rate: 50, amount: 100 },
+      { description: 'Mobile Responsiveness & Performance Audit', hours: 2, rate: 50, amount: 100 },
+    ],
+    placeholderBrief: 'Paste raw client brief, email, or chat (e.g. Next.js SaaS dashboard with Stripe billing, responsive UI, Postgres schema)...',
+    instructionsDocType: 'AGENTS.md Coding Agent Instructions',
+    artifactName: 'AGENTS.md',
+  },
+
+  graphic_designer: {
+    id: 'graphic_designer',
+    name: 'Graphic Designer & Brand Identity',
+    shortName: 'Graphic Designer',
+    badge: 'Visual Identity',
+    description: 'Logos, full brand guidelines, social media assets, print packaging, marketing collateral, and vector art.',
+    defaultHourlyRate: 45,
+    defaultMinHourlyRate: 30,
+    defaultMinProjectFee: 200,
+    categories: [
+      { id: 'logo-brand-identity', label: 'Logo & Brand Identity Pack', floor: 400 },
+      { id: 'brand-guidelines', label: 'Full Brand Guidelines & System', floor: 900 },
+      { id: 'social-media-kit', label: 'Social Media Graphics Kit', floor: 250 },
+      { id: 'marketing-collateral', label: 'Brochures & Print Collateral', floor: 300 },
+      { id: 'packaging-design', label: 'Product Packaging & Label Design', floor: 600 },
+      { id: 'vector-illustrations', label: 'Custom Vector Illustrations', floor: 350 },
+      { id: 'presentation-pitchdeck', label: 'Investor Pitch Deck & Slides', floor: 450 },
+    ],
+    defaultProposalItems: [
+      { description: 'Primary Logo, Secondary Mark & Favicon Variations', hours: 4, rate: 45, amount: 180 },
+      { description: 'Color Palette Spec (RGB, CMYK, Pantone) & Typography Guide', hours: 2, rate: 45, amount: 90 },
+      { description: 'Vector Master Files (AI, SVG, EPS) & High-Res PNG Exports', hours: 2, rate: 45, amount: 90 },
+      { description: 'Brand Social Media Banner & Avatar Pack', hours: 2, rate: 45, amount: 90 },
+    ],
+    placeholderBrief: 'Paste client design brief, moodboard notes, or messages (e.g. Modern minimalist coffee brand logo, packaging labels, vector assets)...',
+    instructionsDocType: 'BRAND_SPECIFICATIONS.md Creative Brief',
+    artifactName: 'BRAND_GUIDE.md',
+  },
+
+  content_writer: {
+    id: 'content_writer',
+    name: 'Content Writer & Copywriter',
+    shortName: 'Copywriter',
+    badge: 'Words & Strategy',
+    description: 'SEO blog articles, high-converting website copy, email sequences, whitepapers, and sales funnels.',
+    defaultHourlyRate: 40,
+    defaultMinHourlyRate: 25,
+    defaultMinProjectFee: 150,
+    categories: [
+      { id: 'website-copywriting', label: 'Complete Website Copy (4-5 Pages)', floor: 500 },
+      { id: 'seo-blog-articles', label: 'SEO Blog Posts (Pack of 4 Articles)', floor: 300 },
+      { id: 'sales-page-vsl', label: 'High-Converting Sales Page / VSL', floor: 450 },
+      { id: 'email-newsletter', label: 'Email Welcome & Nurture Sequence', floor: 250 },
+      { id: 'whitepaper-ebook', label: 'Technical Whitepaper or Industry E-Book', floor: 800 },
+      { id: 'case-studies', label: 'Customer Case Study & Success Story', floor: 350 },
+      { id: 'social-copy-threads', label: 'Monthly Social Media Content Calendar', floor: 250 },
+    ],
+    defaultProposalItems: [
+      { description: 'Audience Persona & Brand Tone of Voice Definition', hours: 2, rate: 40, amount: 80 },
+      { description: 'Hero Value Hook, Headlines & UVP Copywriting', hours: 3, rate: 40, amount: 120 },
+      { description: 'Keyword Research Integration & SEO Meta Descriptions', hours: 2, rate: 40, amount: 80 },
+      { description: 'Body Copywriting & Actionable CTAs with 2 Revision Passes', hours: 3, rate: 40, amount: 120 },
+    ],
+    placeholderBrief: 'Paste raw client email, project brief, or notes (e.g. 5-page B2B cybersecurity website copy, authoritative tone, SEO keywords)...',
+    instructionsDocType: 'COPY_SPECIFICATIONS.md Editorial Brief',
+    artifactName: 'EDITORIAL_SPEC.md',
+  },
+
+  ui_ux_designer: {
+    id: 'ui_ux_designer',
+    name: 'UI/UX & Product Designer',
+    shortName: 'UI/UX Designer',
+    badge: 'Product & Flows',
+    description: 'User flows, wireframes, interactive Figma prototypes, mobile app interfaces, and SaaS design systems.',
+    defaultHourlyRate: 55,
+    defaultMinHourlyRate: 40,
+    defaultMinProjectFee: 400,
+    categories: [
+      { id: 'ux-audit-redesign', label: 'UX Audit & Conversion Redesign', floor: 600 },
+      { id: 'mobile-app-ui', label: 'Mobile App Interface (iOS/Android)', floor: 1800 },
+      { id: 'web-app-dashboard', label: 'SaaS Web App & Dashboard UI', floor: 2200 },
+      { id: 'design-system', label: 'Complete Figma Design System & Tokens', floor: 2500 },
+      { id: 'interactive-prototype', label: 'Clickable Interactive Prototype', floor: 800 },
+      { id: 'user-research-testing', label: 'User Research & Usability Testing', floor: 1000 },
+    ],
+    defaultProposalItems: [
+      { description: 'User Flow & Information Architecture Mapping', hours: 3, rate: 55, amount: 165 },
+      { description: 'Low-Fidelity Wireframes & UX Layout Validation', hours: 4, rate: 55, amount: 220 },
+      { description: 'High-Fidelity Component UI Screens (Light & Dark)', hours: 6, rate: 55, amount: 330 },
+      { description: 'Interactive Clickable Prototype & Dev Token Handoff', hours: 3, rate: 55, amount: 165 },
+    ],
+    placeholderBrief: 'Paste product requirements, Figma links, or client emails (e.g. Fintech mobile app redesign, wireframes, 12 screen flows, design tokens)...',
+    instructionsDocType: 'DESIGN_SYSTEM.md Product Spec',
+    artifactName: 'DESIGN_SYSTEM.md',
+  },
+
+  video_editor: {
+    id: 'video_editor',
+    name: 'Video Editor & Motion Designer',
+    shortName: 'Video Editor',
+    badge: 'Media & Motion',
+    description: 'Short-form reels, YouTube long-form content, commercial brand videos, motion graphics, and audio mastering.',
+    defaultHourlyRate: 50,
+    defaultMinHourlyRate: 35,
+    defaultMinProjectFee: 250,
+    categories: [
+      { id: 'reels-shorts-batch', label: 'Viral Reels & Shorts Batch (5-10 videos)', floor: 300 },
+      { id: 'youtube-long-form', label: 'YouTube Video Production (10-20 min)', floor: 400 },
+      { id: 'commercial-promo', label: 'Commercial Promo & Product Ad', floor: 900 },
+      { id: 'motion-graphics', label: '2D Motion Graphics & Logo Animation', floor: 1100 },
+      { id: 'podcast-multicam', label: 'Multi-Camera Podcast Episode', floor: 500 },
+      { id: 'color-grading-audio', label: 'Cinematic Color Grade & Audio Polish', floor: 350 },
+    ],
+    defaultProposalItems: [
+      { description: 'Raw Footage Ingest, Selection & Rough Cut Assembly', hours: 3, rate: 50, amount: 150 },
+      { description: 'Dynamic Pacing, Engaging Cuts & B-Roll Integration', hours: 3, rate: 50, amount: 150 },
+      { description: 'Sound Design, SFX, Audio Equalization & Noise Removal', hours: 2, rate: 50, amount: 100 },
+      { description: 'Color Grading, Motion Subtitles & 4K Multi-Platform Export', hours: 2, rate: 50, amount: 100 },
+    ],
+    placeholderBrief: 'Paste raw client video brief, script, or call notes (e.g. 10 short-form reels for fitness coach, dynamic captions, sound design)...',
+    instructionsDocType: 'PRODUCTION_SPECIFICATIONS.md Video Brief',
+    artifactName: 'VIDEO_SPEC.md',
+  },
+
+  digital_marketer: {
+    id: 'digital_marketer',
+    name: 'Digital Marketer & SEO Specialist',
+    shortName: 'Digital Marketer',
+    badge: 'Growth & ROI',
+    description: 'Search engine optimization, PPC ad campaigns, email funnels, analytics tracking, and social media growth.',
+    defaultHourlyRate: 50,
+    defaultMinHourlyRate: 35,
+    defaultMinProjectFee: 300,
+    categories: [
+      { id: 'seo-technical-audit', label: 'SEO Technical Audit & Strategy', floor: 600 },
+      { id: 'ppc-ad-campaigns', label: 'Google & Meta Ads Campaign Setup', floor: 700 },
+      { id: 'social-media-mgmt', label: 'Monthly Social Media Growth Retainer', floor: 850 },
+      { id: 'email-marketing-funnel', label: 'Automated Lifecycle Funnel & Flows', floor: 900 },
+      { id: 'conversion-rate-cro', label: 'Conversion Rate Optimization (CRO)', floor: 800 },
+      { id: 'local-seo-gmb', label: 'Local Business SEO & Map Pack Ranking', floor: 400 },
+    ],
+    defaultProposalItems: [
+      { description: 'Competitor Benchmarking & Keyword Gap Analysis', hours: 3, rate: 50, amount: 150 },
+      { description: 'Campaign Architecture & Audience Segmentation Strategy', hours: 3, rate: 50, amount: 150 },
+      { description: 'High-Converting Ad Creative Angles & Messaging Framework', hours: 3, rate: 50, amount: 150 },
+      { description: 'Conversion Tracking Setup (Pixel / GTM / GA4) & QA', hours: 2, rate: 50, amount: 100 },
+    ],
+    placeholderBrief: 'Paste client marketing brief, goals, or notes (e.g. E-commerce brand looking to scale Meta Ads from $5k/mo to $20k/mo with ROAS target)...',
+    instructionsDocType: 'CAMPAIGN_SPECIFICATIONS.md Marketing Plan',
+    artifactName: 'CAMPAIGN_SPEC.md',
+  },
+};
+
+export const PROFESSIONS_LIST = Object.values(PROFESSIONS);
+
+export const DEFAULT_PROFESSION_ID = 'web_developer';
+
+export function getProfessionConfig(fieldId) {
+  return PROFESSIONS[fieldId] || PROFESSIONS[DEFAULT_PROFESSION_ID];
+}

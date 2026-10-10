@@ -20,6 +20,7 @@ import dashboardRouter from './routes/dashboard.js';
 import subscriptionRouter from './routes/subscription.js';
 import demoRouter from './routes/demo.js';
 import templatesRouter from './routes/templates.js';
+import publicDocumentsRouter from './routes/publicDocuments.js';
 
 import dns from 'dns';
 
@@ -99,6 +100,7 @@ app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/subscription', subscriptionRouter);
 app.use('/api/v1/demo', demoRouter);
 app.use('/api/v1/templates', templatesRouter);
+app.use('/api/v1/public', publicDocumentsRouter);
 
 // Centralized 404 handler
 app.use((req, res) => {

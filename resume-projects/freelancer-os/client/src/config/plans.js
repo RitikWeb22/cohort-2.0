@@ -1,0 +1,81 @@
+export const PLANS = [
+  {
+    id: 'free',
+    name: 'Starter',
+    badge: 'Free Forever',
+    description: 'Perfect for new freelancers exploring scope and pricing clarity.',
+    monthlyPrice: 0,
+    annualPricePerMonth: 0,
+    annualBilledTotal: 0,
+    clientLimit: 2,
+    features: [
+      'Up to 2 active clients',
+      'Standard AI requirement scoping',
+      'Protected floor pricing calculator',
+      'Basic proposal generator',
+      'Manual invoice & payment logging',
+    ],
+    ctaText: 'Current Plan',
+    popular: false,
+  },
+  {
+    id: 'solo',
+    name: 'Solo',
+    badge: 'Popular for Freelancers',
+    description: 'For active independent professionals building steady contract pipeline.',
+    monthlyPrice: 9,
+    annualPricePerMonth: 7.50, // 17% off
+    annualBilledTotal: 90,
+    clientLimit: 10,
+    features: [
+      'Up to 10 active clients',
+      'Unlimited proposals & quotations',
+      'Automated floor protection guard',
+      'Stripe & PayPal payment checkout links',
+      'Full invoice management & receipts',
+      'Realistic profit & margin calculation',
+    ],
+    ctaText: 'Upgrade to Solo',
+    popular: false,
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    badge: 'Most Popular',
+    description: 'For busy consultants who want end-to-end automation and engineering artifacts.',
+    monthlyPrice: 19,
+    annualPricePerMonth: 15.80, // 17% off
+    annualBilledTotal: 190,
+    clientLimit: null, // unlimited
+    features: [
+      'Unlimited active clients',
+      'Autonomous AI Requirement Analyzer',
+      'Client-Specific AGENTS.md generator',
+      'High-resolution PDF proposal & invoice exports',
+      'Advanced financial metrics & cashflow trends',
+      'Document versioning & change request tracking',
+    ],
+    ctaText: 'Upgrade to Pro',
+    popular: true,
+  },
+  {
+    id: 'agency',
+    name: 'Agency',
+    badge: 'Power Scaling',
+    description: 'For boutique studios, agencies, and teams delivering multi-currency projects.',
+    monthlyPrice: 49,
+    annualPricePerMonth: 40.70, // 17% off
+    annualBilledTotal: 490,
+    clientLimit: null, // unlimited
+    features: [
+      'Team members & multiple seats',
+      'White-label proposals & customized branding',
+      'Multi-currency invoices (USD, EUR, GBP, INR, etc.)',
+      'Custom margin rules & rate cards',
+      'Priority Gemini AI response quota',
+      'Dedicated SLA & direct support',
+    ],
+    ctaText: 'Upgrade to Agency',
+    popular: false,
+  },
+];
