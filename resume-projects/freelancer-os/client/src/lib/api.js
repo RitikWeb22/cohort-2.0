@@ -105,6 +105,7 @@ export const api = {
   createInvoiceShareLink: (id) => apiRequest(`/invoices/${id}/share-link`, { method: 'POST' }),
   revokeInvoiceShareLink: (id) => apiRequest(`/invoices/${id}/share-link`, { method: 'DELETE' }),
   getInvoiceShareLink: (id) => apiRequest(`/invoices/${id}/share-link`),
+  getInvoiceGateways: (currency) => apiRequest(`/invoices/gateways?currency=${currency || ''}`),
 
   // Expenses
   getExpenses: () => apiRequest('/expenses'),

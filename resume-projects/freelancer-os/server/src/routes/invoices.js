@@ -9,6 +9,7 @@ import { config } from '../config/env.js';
 import { requireAuth } from '../middleware/auth.js';
 import { getSubscriptionDetails } from '../services/subscriptionService.js';
 import { generateInvoicePdf, generateReceiptPdf } from '../services/pdfService.js';
+import { getGatewayCapabilities, createGatewaySession, GATEWAY_PROVIDERS } from '../services/paymentGatewayAdapter.js';
 
 const router = express.Router();
 router.use(requireAuth);
@@ -100,6 +101,17 @@ router.get('/highest-number', async (req, res) => {
       }
     }
     res.json({ success: true, highestNumber: highestSequence });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/v1/invoices/gateways (Payment gateway availability & capabilities)
+router.get('/gateways', async (req, res) => {
+  try {
+    const currency = req.query.currency || req.user.currency || 'USD';
+    const capabilities = getGatewayCapabilities(currency);
+    res.json({ success: true, ...capabilities });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -438,6 +450,13 @@ router.post('/:id/settle', async (req, res) => {
     const settleAmount = invoice.balanceDue;
     const { paymentMethod, transactionReference, notes, paymentDate } = req.body;
 
+    if (!paymentMethod || !transactionReference || !String(transactionReference).trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Explicit paymentMethod and transactionReference are required for truth-in-accounting records. Unreferenced or automated settlements are not permitted.',
+      });
+    }
+
     const newPayment = await Payment.create({
       userId,
       invoiceId: invoice._id,
@@ -445,8 +464,8 @@ router.post('/:id/settle', async (req, res) => {
       amount: settleAmount,
       currency: invoice.currency || 'USD',
       paymentDate: paymentDate ? new Date(paymentDate) : new Date(),
-      paymentMethod: paymentMethod || 'bank_transfer',
-      transactionReference: transactionReference || `SETTLE-${Date.now()}`,
+      paymentMethod,
+      transactionReference: String(transactionReference).trim(),
       notes: notes || 'Full balance invoice settlement',
     });
 
@@ -559,122 +578,33 @@ router.post('/:id/payment-gateway', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Invoice not found' });
     }
 
-    const { gateway } = req.body; // 'stripe', 'paypal', 'bank_transfer', 'razorpay', 'upi'
-    const isINR = (invoice.currency || 'USD').toUpperCase() === 'INR';
-
-
-
-    // Regional restriction check: Razorpay and UPI only if currency is INR
-    if ((gateway === 'razorpay' || gateway === 'upi') && !isINR) {
-      return res.status(400).json({
-        success: false,
-        error: 'Razorpay and UPI are regional payment methods available only when the invoice currency is INR.',
-      });
-    }
-
-    invoice.paymentGateway = gateway || 'stripe';
-    await invoice.save();
-
+    const { gateway } = req.body;
     const client = await Client.findOne({ _id: invoice.clientId, userId });
 
-    if (gateway === 'paypal') {
-      const paypalUrl = req.user.paypalEmail
-        ? `https://paypal.me/${encodeURIComponent(req.user.paypalEmail.split('@')[0])}/${invoice.balanceDue}${invoice.currency}`
-        : `https://www.paypal.com/checkoutnow?invoice=${invoice.invoiceNumber}&amount=${invoice.balanceDue}&currency=${invoice.currency}`;
-      
-      invoice.paypalPaymentUrl = paypalUrl;
-      await invoice.save();
-
-      return res.json({
-        success: true,
-        gateway: 'paypal',
-        paymentUrl: paypalUrl,
-        instructions: `Send payment of ${invoice.currency} ${invoice.balanceDue} via PayPal to ${req.user.paypalEmail || 'business account'}. Reference: ${invoice.invoiceNumber}`,
-      });
-    }
-
-    if (gateway === 'bank_transfer') {
-      return res.json({
-        success: true,
-        gateway: 'bank_transfer',
-        details: {
-          recipient: req.user.businessName || req.user.fullName,
-          iban: req.user.iban || 'Wise / International Account (configure in Settings)',
-          swiftBic: req.user.swiftBic || 'SWIFT (configure in Settings)',
-          reference: invoice.invoiceNumber,
-          amountDue: invoice.balanceDue,
-          currency: invoice.currency,
-        },
-        instructions: `Transfer ${invoice.currency} ${invoice.balanceDue} with reference ${invoice.invoiceNumber}. Wise / SEPA / SWIFT accepted.`,
-      });
-    }
-
-    if (gateway === 'razorpay' || gateway === 'upi') {
-      return res.json({
-        success: true,
-        gateway,
-        details: {
-          amountDue: invoice.balanceDue,
-          currency: 'INR',
-          upiId: req.user.businessEmail ? `${req.user.businessEmail.split('@')[0]}@upi` : 'merchant@upi',
-          reference: invoice.invoiceNumber,
-        },
-        instructions: `Scan UPI QR or complete Razorpay payment for ₹${invoice.balanceDue.toLocaleString('en-IN')}. Reference: ${invoice.invoiceNumber}`,
-      });
-    }
-
-    // Default: Stripe
-    if (config.stripeSecretKey) {
-      const stripe = new Stripe(config.stripeSecretKey);
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [
-          {
-            price_data: {
-              currency: (invoice.currency || 'USD').toLowerCase(),
-              product_data: {
-                name: `Invoice ${invoice.invoiceNumber} - ${req.user.businessName || req.user.fullName}`,
-                description: `Professional services payment for ${client?.name || 'Client'}`,
-              },
-              unit_amount: Math.round(invoice.balanceDue * 100),
-            },
-            quantity: 1,
-          },
-        ],
-        mode: 'payment',
-        customer_email: client?.email || undefined,
-        success_url: `${config.frontendUrl}/invoices?stripe_paid=true&invoiceId=${invoice._id}`,
-        cancel_url: `${config.frontendUrl}/invoices?stripe_paid=cancelled&invoiceId=${invoice._id}`,
-        metadata: {
-          invoiceId: invoice._id.toString(),
-          userId: userId.toString(),
-        },
-      });
-
-      invoice.stripePaymentUrl = session.url;
-      invoice.stripeSessionId = session.id;
-      await invoice.save();
-
-      return res.json({
-        success: true,
-        gateway: 'stripe',
-        paymentUrl: session.url,
-        sessionId: session.id,
-      });
-    }
-
-    // Demo / Sandbox mode fallback
-    const demoUrl = `${config.frontendUrl}/invoices?mock_stripe_checkout=${invoice._id}&amount=${invoice.balanceDue}`;
-    invoice.stripePaymentUrl = demoUrl;
-    await invoice.save();
-
-    return res.json({
-      success: true,
-      gateway: 'stripe',
-      paymentUrl: demoUrl,
-      mode: 'sandbox_demo',
-      message: 'Demo Stripe Checkout link generated. Configure STRIPE_SECRET_KEY in server/.env for live Stripe processing.',
+    const session = await createGatewaySession(gateway, {
+      invoice,
+      client,
+      user: req.user,
+      returnUrl: `${config.frontendUrl}/invoices?stripe_paid=true&invoiceId=${invoice._id}`,
+      cancelUrl: `${config.frontendUrl}/invoices?stripe_paid=cancelled&invoiceId=${invoice._id}`,
     });
+
+    if (!session.success) {
+      return res.status(400).json(session);
+    }
+
+    if (session.paymentUrl) {
+      if (session.gateway === GATEWAY_PROVIDERS.STRIPE) {
+        invoice.stripePaymentUrl = session.paymentUrl;
+        invoice.stripeSessionId = session.sessionId;
+      } else if (session.gateway === GATEWAY_PROVIDERS.PAYPAL) {
+        invoice.paypalPaymentUrl = session.paymentUrl;
+      }
+      invoice.paymentGateway = session.gateway;
+      await invoice.save();
+    }
+
+    return res.json(session);
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

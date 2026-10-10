@@ -129,30 +129,12 @@ export function InvoicesPage() {
   useEffect(() => {
     loadData();
 
-    // Check for Stripe Checkout returns
+    // Check for Stripe Checkout return notice
     const params = new URLSearchParams(window.location.search);
-    if (params.get('stripe_paid') === 'true' && params.get('invoiceId')) {
-      const invId = params.get('invoiceId');
-      api.settleInvoice(invId, {
-        paymentMethod: 'stripe',
-        transactionReference: `STRIPE-${Date.now()}`,
-        notes: 'Paid online via Stripe Checkout.',
-      }).then(() => {
-        loadData();
-        setStripeSuccessMsg('🎉 Client payment successfully confirmed and received via Stripe!');
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }).catch(() => {});
-    } else if (params.get('mock_stripe_checkout')) {
-      const invId = params.get('mock_stripe_checkout');
-      api.settleInvoice(invId, {
-        paymentMethod: 'stripe',
-        transactionReference: `STRIPE-DEMO-${Date.now()}`,
-        notes: 'Simulated online payment via Stripe Sandbox.',
-      }).then(() => {
-        loadData();
-        setStripeSuccessMsg('🎉 Sandbox client payment recorded via Stripe Checkout simulator!');
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }).catch(() => {});
+    if (params.get('stripe_paid') === 'true') {
+      loadData();
+      setStripeSuccessMsg('Returned from payment processor checkout.');
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
@@ -163,50 +145,18 @@ export function InvoicesPage() {
       setGatewayLoading(true);
       const res = await api.selectPaymentGateway(selectedInvoice.id, { gateway });
       setGatewayResult(res);
-      if (res?.paymentUrl && gateway === 'stripe') {
+      if (res?.paymentUrl && (gateway === 'stripe' || gateway === 'paypal')) {
         window.open(res.paymentUrl, '_blank');
       }
     } catch (err) {
       showToast({
         type: 'error',
-        title: 'Gateway Error',
-        message: err.message || 'Failed to initialize gateway',
+        title: 'Gateway Unavailable',
+        message: err.message || 'Payment gateway is disabled or not configured.',
       });
     } finally {
       setGatewayLoading(false);
     }
-  };
-
-  // 1-Click Settle Invoice in Full
-  const handleSettleInFull = (inv) => {
-    if (!inv || inv.balanceDue <= 0) return;
-    showConfirm({
-      title: 'Settle Invoice in Full?',
-      message: `Confirm full settlement of remaining balance ${format(inv.balanceDue)} for invoice ${inv.invoiceNumber}?`,
-      confirmText: 'Settle in Full',
-      cancelText: 'Cancel',
-      isDestructive: false,
-      onConfirm: async () => {
-        try {
-          const res = await api.settleInvoice(inv.id, {
-            paymentMethod: 'bank_transfer',
-            transactionReference: `FULL-SETTLE-${Date.now()}`,
-            notes: 'Full balance settled in 1-click.',
-          });
-
-          if (res?.invoice) {
-            await loadData();
-            showToast({
-              type: 'success',
-              title: 'Invoice Settled',
-              message: `Invoice ${inv.invoiceNumber} marked Paid in Full!`,
-            });
-          }
-        } catch (err) {
-          showToast({ type: 'error', title: 'Settlement Failed', message: err.message || 'Settlement failed' });
-        }
-      },
-    });
   };
 
   // Generate & Copy Public Share Link for Client
@@ -682,17 +632,6 @@ export function InvoicesPage() {
                             <CreditCard className="w-3.5 h-3.5" />
                             <span>Record Payment</span>
                           </button>
-
-
-
-                          <button
-                            onClick={() => handleSettleInFull(selectedInvoice)}
-                            title="Instant 1-click settlement for remaining balance"
-                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                            <span>1-Click Settle Full</span>
-                          </button>
                         </>
                       )}
                       <button
@@ -909,7 +848,7 @@ export function InvoicesPage() {
               <CreditCard className="w-10 h-10 mx-auto mb-2 opacity-40" />
               <p className="text-sm font-medium">No payment transactions recorded yet.</p>
               <p className="text-xs text-charcoal-400 mt-1">
-                Select an invoice in the Invoices tab and click "Record Payment" or "1-Click Settle Full".
+                Select an invoice in the Invoices tab and click "Record Payment" to log an incoming remittance.
               </p>
             </div>
           ) : (
