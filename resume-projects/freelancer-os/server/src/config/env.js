@@ -41,9 +41,15 @@ export const config = {
 
   // AI Configuration (Google Gemini)
   geminiApiKey: process.env.GEMINI_API_KEY || '',
-  aiPrimaryModel: process.env.AI_PRIMARY_MODEL || process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+  aiPrimaryModel: (() => {
+    const raw = process.env.AI_PRIMARY_MODEL || process.env.GEMINI_MODEL;
+    return (raw && raw !== 'gemini-3.8-flash') ? raw : 'gemini-1.5-flash';
+  })(),
   aiFallbackModel: process.env.AI_FALLBACK_MODEL || 'gemini-1.5-pro',
-  geminiModel: process.env.AI_PRIMARY_MODEL || process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+  geminiModel: (() => {
+    const raw = process.env.AI_PRIMARY_MODEL || process.env.GEMINI_MODEL;
+    return (raw && raw !== 'gemini-3.8-flash') ? raw : 'gemini-1.5-flash';
+  })(),
 
   // Subscription Billing System 1
   billingEnabled: process.env.BILLING_ENABLED === 'true',

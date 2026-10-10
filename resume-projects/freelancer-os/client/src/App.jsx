@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useAuthStore } from './store/useAuthStore';
 import { AuthPage } from './pages/AuthPage';
 import { AppLayout } from './components/layout/AppLayout';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 import { LandingPage } from './pages/LandingPage';
 import { TermsPage } from './pages/TermsPage';
@@ -14,6 +15,7 @@ import { ContactPage } from './pages/ContactPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { PublicProposalPage } from './pages/PublicProposalPage';
 import { PublicInvoicePage } from './pages/PublicInvoicePage';
+import { NotFoundPage } from './pages/NotFoundPage';
 
 import { DashboardPage } from './pages/DashboardPage';
 import { AnalyzerPage } from './pages/AnalyzerPage';
@@ -43,6 +45,7 @@ const queryClient = new QueryClient({
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuthStore();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -54,7 +57,7 @@ function ProtectedRoute({ children }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return children;
@@ -152,8 +155,8 @@ function AppContent() {
           }
         />
 
-        {/* Catch-all redirect */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Catch-all 404 Route */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
@@ -161,8 +164,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppContent />
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AppContent />
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

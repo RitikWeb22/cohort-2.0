@@ -296,11 +296,14 @@ export class PricingEngine {
       try {
         const genAI = new GoogleGenerativeAI(config.geminiApiKey);
         const candidateModels = [
-          config.geminiModel,
-          'gemini-1.5-flash',
-          'gemini-2.0-flash',
-          'gemini-pro'
-        ].filter(Boolean);
+          ...new Set([
+            config.geminiModel,
+            config.aiPrimaryModel,
+            'gemini-2.0-flash',
+            'gemini-1.5-flash',
+            'gemini-1.5-pro',
+          ].filter(Boolean))
+        ];
 
         const catSchema = profConfig.categories.map(c => `"${c.id}"`).join(' | ');
 

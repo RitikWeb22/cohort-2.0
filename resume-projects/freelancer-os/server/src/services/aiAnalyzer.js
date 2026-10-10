@@ -46,12 +46,14 @@ export class AIRequirementAnalyzer {
   static async callGemini(text, projectTypeOverride, field = 'web_developer') {
     const genAI = new GoogleGenerativeAI(config.geminiApiKey);
     const candidateModels = [
-      config.geminiModel,
-      'gemini-3.8-flash',
-      'gemini-2.0-flash',
-      'gemini-1.5-flash',
-      'gemini-pro'
-    ].filter(Boolean);
+      ...new Set([
+        config.geminiModel,
+        config.aiPrimaryModel,
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro',
+      ].filter(Boolean))
+    ];
 
     const prof = getProfessionConfig(field);
     const catList = prof.categories.map(c => c.id).join(', ');

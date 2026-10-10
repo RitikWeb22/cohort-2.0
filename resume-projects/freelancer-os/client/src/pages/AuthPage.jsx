@@ -133,7 +133,10 @@ export function AuthPage() {
       } else {
         await login(email.trim(), password);
       }
-      navigate('/dashboard', { replace: true });
+      const destination = location.state?.from?.pathname
+        ? `${location.state.from.pathname}${location.state.from.search || ''}${location.state.from.hash || ''}`
+        : (new URLSearchParams(location.search).get('returnTo') || '/dashboard');
+      navigate(destination, { replace: true });
     } catch (err) {
       setIsSuccessSubmitting(false);
       if (!isRegister) {
