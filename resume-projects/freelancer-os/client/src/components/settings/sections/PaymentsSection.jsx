@@ -155,7 +155,8 @@ export function PaymentsSection({
                   <div className="relative">
                     <TextInput
                       id="bankAccountNumber"
-                      value={showMaskedAccount ? (bank.accountNumber || bank.iban) : (bank.accountNumber || bank.iban)}
+                      type={showMaskedAccount ? 'text' : 'password'}
+                      value={bank.accountNumber || bank.iban}
                       onChange={(e) => {
                         const val = e.target.value;
                         updateMethod('bankTransfer', 'accountNumber', val);

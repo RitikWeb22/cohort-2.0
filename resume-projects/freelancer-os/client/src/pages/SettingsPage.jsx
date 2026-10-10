@@ -188,10 +188,12 @@ export function SettingsPage() {
   const [errors, setErrors] = useState({});
   const [warnings, setWarnings] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+  const initializedUserIdRef = useRef(null);
 
-  // Synchronize when user or highestInvoiceNumber loads
+  // Synchronize when user first loads or user account changes
   useEffect(() => {
-    if (user) {
+    if (user && initializedUserIdRef.current !== user._id) {
+      initializedUserIdRef.current = user._id;
       const fresh = buildInitialForm(user);
       setSavedData(fresh);
       setFormData(fresh);
@@ -419,12 +421,16 @@ export function SettingsPage() {
 
     setErrors(newErrors);
     setWarnings(newWarnings);
-    return Object.keys(newErrors).length === 0;
+    return {
+      isValid: Object.keys(newErrors).length === 0,
+      errors: newErrors,
+      warnings: newWarnings,
+    };
   };
 
   // Scroll to and focus the first error element
   const scrollToFirstError = (errObj) => {
-    const errorKeys = Object.keys(errObj);
+    const errorKeys = Object.keys(errObj || {});
     if (errorKeys.length === 0) return;
 
     const firstKey = errorKeys[0];
@@ -450,8 +456,14 @@ export function SettingsPage() {
 
   // Save changes handler
   const handleSaveChanges = async () => {
-    if (!validateAll()) {
-      scrollToFirstError(errors);
+    const { isValid, errors: validationErrors } = validateAll();
+    if (!isValid) {
+      scrollToFirstError(validationErrors);
+      showToast({
+        title: 'Validation required',
+        message: 'Please review and complete the highlighted required fields before saving.',
+        type: 'error',
+      });
       return;
     }
 
@@ -466,12 +478,16 @@ export function SettingsPage() {
         queryClient.invalidateQueries();
         showToast({
           title: 'Settings saved',
-          message: 'Your business identity, tax configuration, and payment details have been updated.',
+          message: 'Your studio identity, tax configuration, and payment details have been saved.',
           type: 'success',
         });
       }
     } catch (err) {
-      alert(err.message || 'Failed to save settings. Please try again.');
+      showToast({
+        title: 'Save failed',
+        message: err.message || 'Failed to save settings. Please try again.',
+        type: 'error',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -622,6 +638,13 @@ export function SettingsPage() {
             onChange={handleFieldChange}
             onBlur={handleBlur}
             onRequestCountryChange={handleRequestCountryChange}
+            onNavigateSection={(secId, fieldId) => {
+              navigate(`/settings/${secId}`);
+              setTimeout(() => {
+                const el = document.getElementById(fieldId);
+                el?.focus();
+              }, 100);
+            }}
           />
         );
     }
@@ -638,16 +661,60 @@ export function SettingsPage() {
       }}
     >
       {/* Page Header */}
-      <header className="mb-6 sm:mb-8">
-        <h1
-          className="text-3xl sm:text-4xl font-extrabold text-[#0E1A2B] tracking-tight"
-          style={{ fontFamily: "'Bricolage Grotesque', system-ui, sans-serif" }}
-        >
-          Settings
-        </h1>
-        <p className="text-sm sm:text-[15px] text-[#5B6676] mt-1.5 max-w-2xl leading-relaxed">
-          Your business details, taxes, payments and defaults. They appear on every proposal and invoice.
-        </p>
+      <header className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1
+            className="text-3xl sm:text-4xl font-extrabold text-[#0E1A2B] tracking-tight"
+            style={{ fontFamily: "'Bricolage Grotesque', system-ui, sans-serif" }}
+          >
+            Settings
+          </h1>
+          <p className="text-sm sm:text-[15px] text-[#5B6676] mt-1.5 max-w-2xl leading-relaxed">
+            Your business details, taxes, payments and defaults. They appear on every proposal and invoice.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5 shrink-0">
+          {isDirty && (
+            <button
+              type="button"
+              disabled={isSaving}
+              onClick={handleDiscardChanges}
+              className="inline-flex items-center gap-1.5 px-3.5 h-[42px] rounded-xl border border-[#E8E0CF] bg-white text-xs font-semibold text-[#0E1A2B] hover:bg-[#FAF5EA] transition-colors focus-visible:ring-2 focus-visible:ring-[#0047AB]"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-[#5B6676]" />
+              <span>Discard</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            disabled={isSaving || !isDirty}
+            onClick={handleSaveChanges}
+            className={`inline-flex items-center gap-2 px-5 h-[42px] rounded-xl text-xs font-bold transition-all shadow-xs ${
+              isDirty
+                ? 'bg-[#0047AB] text-white hover:bg-[#003A8C] focus-visible:ring-2 focus-visible:ring-[#0047AB]'
+                : 'bg-white border border-[#E8E0CF] text-[#5B6676] opacity-80 cursor-default'
+            }`}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <span>Saving...</span>
+              </>
+            ) : isDirty ? (
+              <>
+                <Save className="w-4 h-4" />
+                <span>Save changes</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-4 h-4 text-[#067647]" />
+                <span className="text-[#0E1A2B]">Saved</span>
+              </>
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Main 3-Column Desktop Grid / Fluid Mobile Layout */}

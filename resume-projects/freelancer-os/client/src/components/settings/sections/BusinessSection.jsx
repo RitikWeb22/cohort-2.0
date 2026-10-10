@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
-import { Upload, X, Image as ImageIcon, Building, AlertCircle } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Upload, X, Image as ImageIcon, Building, AlertCircle, Loader2 } from 'lucide-react';
 import { FormField, TextInput, SelectInput } from '../FormField';
 import { ChecklistBanner } from '../ChecklistBanner';
 import { COUNTRY_OPTIONS, INDIAN_STATES, US_STATES } from '../settingsConstants';
+import { optimizeImageFile } from '../../../utils/imageUtils';
 
 export function BusinessSection({
   formData,
@@ -14,49 +15,71 @@ export function BusinessSection({
 }) {
   const logoInputRef = useRef(null);
   const signatureInputRef = useRef(null);
+  const [isProcessingLogo, setIsProcessingLogo] = useState(false);
+  const [isProcessingSignature, setIsProcessingSignature] = useState(false);
 
-  // Handle Logo Upload (Client-side DataURL, max 2MB)
-  const handleLogoUpload = (e) => {
+  // Handle Logo Upload (Client-side optimization, up to 10MB input -> crisp compact DataURL)
+  const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!['image/png', 'image/jpeg', 'image/svg+xml'].includes(file.type)) {
-      alert('Please upload a PNG, JPG, or SVG image.');
+    // Reset input value so selecting the same file triggers change event again
+    e.target.value = '';
+
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'];
+    const hasValidExt = /\.(png|jpe?g|svg|webp)$/i.test(file.name || '');
+
+    if (!validTypes.includes(file.type?.toLowerCase()) && !hasValidExt) {
+      alert('Please upload a PNG, JPG, SVG, or WebP image.');
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert('Logo file size must be less than 2 MB.');
-      return;
+    try {
+      setIsProcessingLogo(true);
+      const optimizedUrl = await optimizeImageFile(file, {
+        maxWidth: 600,
+        maxHeight: 600,
+        quality: 0.85,
+        maxFileSizeMb: 10,
+        outputType: file.type === 'image/svg+xml' ? 'auto' : 'image/png',
+      });
+      onChange('logoUrl', optimizedUrl);
+    } catch (err) {
+      alert(err.message || 'Failed to process logo image.');
+    } finally {
+      setIsProcessingLogo(false);
     }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      onChange('logoUrl', reader.result);
-    };
-    reader.readAsDataURL(file);
   };
 
-  // Handle Signature Upload (PNG, max 2MB)
-  const handleSignatureUpload = (e) => {
+  // Handle Signature Upload (PNG with transparent background, up to 10MB input -> compact DataURL)
+  const handleSignatureUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== 'image/png') {
+    // Reset input value so selecting the same file triggers change event again
+    e.target.value = '';
+
+    const isPng = file.type === 'image/png' || /\.png$/i.test(file.name || '');
+    if (!isPng) {
       alert('Signature must be a PNG image with a transparent background.');
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert('Signature file size must be less than 2 MB.');
-      return;
+    try {
+      setIsProcessingSignature(true);
+      const optimizedUrl = await optimizeImageFile(file, {
+        maxWidth: 800,
+        maxHeight: 300,
+        quality: 0.9,
+        maxFileSizeMb: 10,
+        outputType: 'image/png',
+      });
+      onChange('signatureUrl', optimizedUrl);
+    } catch (err) {
+      alert(err.message || 'Failed to process signature image.');
+    } finally {
+      setIsProcessingSignature(false);
     }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      onChange('signatureUrl', reader.result);
-    };
-    reader.readAsDataURL(file);
   };
 
   const currentCountry = COUNTRY_OPTIONS.find((c) => c.code === formData.country) || COUNTRY_OPTIONS[0];
@@ -99,7 +122,7 @@ export function BusinessSection({
                     type="button"
                     onClick={() => onChange('logoUrl', '')}
                     aria-label="Remove logo"
-                    className="absolute -top-2 -right-2 p-1 rounded-full bg-[#B42318] text-white shadow-xs hover:bg-[#912018] transition-colors"
+                    className="absolute -top-2 -right-2 p-1 rounded-full bg-[#B42318] text-white shadow-xs hover:bg-[#912018] transition-colors cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -107,34 +130,38 @@ export function BusinessSection({
               ) : (
                 <button
                   type="button"
+                  disabled={isProcessingLogo}
                   onClick={() => logoInputRef.current?.click()}
-                  className="w-24 h-24 rounded-xl border-2 border-dashed border-[#E8E0CF] hover:border-[#0047AB] bg-[#FAF5EA]/30 hover:bg-[#E8F0FB]/30 flex flex-col items-center justify-center gap-1.5 transition-colors cursor-pointer group"
+                  className="w-24 h-24 rounded-xl border-2 border-dashed border-[#E8E0CF] hover:border-[#0047AB] bg-[#FAF5EA]/30 hover:bg-[#E8F0FB]/30 flex flex-col items-center justify-center gap-1.5 transition-colors cursor-pointer group disabled:opacity-60"
                 >
-                  <Upload className="w-5 h-5 text-[#5B6676] group-hover:text-[#0047AB]" />
+                  {isProcessingLogo ? (
+                    <Loader2 className="w-5 h-5 text-[#0047AB] animate-spin" />
+                  ) : (
+                    <Upload className="w-5 h-5 text-[#5B6676] group-hover:text-[#0047AB]" />
+                  )}
                   <span className="text-[11px] font-bold text-[#5B6676] group-hover:text-[#0047AB]">
-                    Upload
+                    {isProcessingLogo ? 'Optimizing...' : 'Upload'}
                   </span>
                 </button>
               )}
 
               <div className="text-xs text-[#5B6676] space-y-1">
-                <p className="font-medium text-[#0E1A2B]">PNG, JPG, or SVG (max 2 MB)</p>
+                <p className="font-medium text-[#0E1A2B]">PNG, JPG, SVG, or WebP</p>
                 <p>Rendered on invoice headers and proposal title pages.</p>
-                {!formData.logoUrl && (
-                  <button
-                    type="button"
-                    onClick={() => logoInputRef.current?.click()}
-                    className="text-xs font-bold text-[#0047AB] hover:underline"
-                  >
-                    Choose logo file
-                  </button>
-                )}
+                <button
+                  type="button"
+                  disabled={isProcessingLogo}
+                  onClick={() => logoInputRef.current?.click()}
+                  className="text-xs font-bold text-[#0047AB] hover:underline cursor-pointer disabled:opacity-60"
+                >
+                  {formData.logoUrl ? 'Change logo image' : 'Choose logo file'}
+                </button>
               </div>
             </div>
             <input
               ref={logoInputRef}
               type="file"
-              accept="image/png,image/jpeg,image/svg+xml"
+              accept="image/png,image/jpeg,image/svg+xml,image/webp"
               onChange={handleLogoUpload}
               className="hidden"
             />
@@ -157,7 +184,7 @@ export function BusinessSection({
                     type="button"
                     onClick={() => onChange('signatureUrl', '')}
                     aria-label="Remove signature"
-                    className="absolute -top-2 -right-2 p-1 rounded-full bg-[#B42318] text-white shadow-xs hover:bg-[#912018] transition-colors"
+                    className="absolute -top-2 -right-2 p-1 rounded-full bg-[#B42318] text-white shadow-xs hover:bg-[#912018] transition-colors cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -165,12 +192,17 @@ export function BusinessSection({
               ) : (
                 <button
                   type="button"
+                  disabled={isProcessingSignature}
                   onClick={() => signatureInputRef.current?.click()}
-                  className="w-28 h-20 rounded-xl border-2 border-dashed border-[#E8E0CF] hover:border-[#0047AB] bg-[#FAF5EA]/30 hover:bg-[#E8F0FB]/30 flex flex-col items-center justify-center gap-1.5 transition-colors cursor-pointer group"
+                  className="w-28 h-20 rounded-xl border-2 border-dashed border-[#E8E0CF] hover:border-[#0047AB] bg-[#FAF5EA]/30 hover:bg-[#E8F0FB]/30 flex flex-col items-center justify-center gap-1.5 transition-colors cursor-pointer group disabled:opacity-60"
                 >
-                  <Upload className="w-5 h-5 text-[#5B6676] group-hover:text-[#0047AB]" />
+                  {isProcessingSignature ? (
+                    <Loader2 className="w-5 h-5 text-[#0047AB] animate-spin" />
+                  ) : (
+                    <Upload className="w-5 h-5 text-[#5B6676] group-hover:text-[#0047AB]" />
+                  )}
                   <span className="text-[11px] font-bold text-[#5B6676] group-hover:text-[#0047AB]">
-                    Upload PNG
+                    {isProcessingSignature ? 'Optimizing...' : 'Upload PNG'}
                   </span>
                 </button>
               )}
@@ -178,15 +210,14 @@ export function BusinessSection({
               <div className="text-xs text-[#5B6676] space-y-1">
                 <p className="font-medium text-[#0E1A2B]">PNG with transparent background</p>
                 <p>Stamped on proposal approval acceptance blocks.</p>
-                {!formData.signatureUrl && (
-                  <button
-                    type="button"
-                    onClick={() => signatureInputRef.current?.click()}
-                    className="text-xs font-bold text-[#0047AB] hover:underline"
-                  >
-                    Choose signature PNG
-                  </button>
-                )}
+                <button
+                  type="button"
+                  disabled={isProcessingSignature}
+                  onClick={() => signatureInputRef.current?.click()}
+                  className="text-xs font-bold text-[#0047AB] hover:underline cursor-pointer disabled:opacity-60"
+                >
+                  {formData.signatureUrl ? 'Change signature PNG' : 'Choose signature PNG'}
+                </button>
               </div>
             </div>
             <input
