@@ -38,6 +38,8 @@ export const api = {
   login: (credentials) => apiRequest('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
   register: (payload) => apiRequest('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
   updateProfile: (profile) => apiRequest('/auth/profile', { method: 'PATCH', body: JSON.stringify(profile) }),
+  forgotPassword: (email) => apiRequest('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: (payload) => apiRequest('/auth/reset-password', { method: 'POST', body: JSON.stringify(payload) }),
 
   // Dashboard
   getDashboardMetrics: () => apiRequest('/dashboard/metrics'),

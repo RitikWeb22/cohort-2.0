@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { RefreshCw, ArrowLeft, CheckCircle2, AlertCircle, HelpCircle } from 'lucide-react';
 import { Footer } from '../components/layout/Footer';
 import { Logo } from '../components/common/Logo';
+import { siteConfig } from '../config/site';
 
 export function RefundPage() {
   return (
@@ -65,7 +66,7 @@ export function RefundPage() {
               </p>
               <ul className="list-disc pl-5 space-y-1 text-charcoal-600">
                 <li>You can export all your project proposals, financial invoice records, and generated <code className="bg-charcoal-100 px-1 py-0.5 rounded text-xs font-mono">AGENTS.md</code> files prior to deactivating your workspace.</li>
-                <li>To permanently purge your workspace and all associated database records, simply send an account cancellation request to <a href="mailto:support@floorly.ai" className="text-brand-600 underline font-medium">support@floorly.ai</a>.</li>
+                <li>To permanently purge your workspace and all associated database records, simply send an account cancellation request to <a href={`mailto:${siteConfig.supportEmail}`} className="text-brand-600 underline font-medium">{siteConfig.supportEmail}</a>.</li>
               </ul>
             </section>
 
@@ -107,8 +108,8 @@ export function RefundPage() {
               <h2 className="text-base font-bold text-charcoal-900">6. Questions or Inquiries</h2>
               <p>
                 For any inquiries regarding this policy, reach out to our support team at{' '}
-                <a href="mailto:support@floorly.ai" className="text-brand-600 underline font-semibold">
-                  support@floorly.ai
+                <a href={`mailto:${siteConfig.supportEmail}`} className="text-brand-600 underline font-semibold">
+                  {siteConfig.supportEmail}
                 </a>{' '}
                 or visit our <Link to="/contact" className="text-brand-600 underline font-semibold">Contact Page</Link>.
               </p>

@@ -1,12 +1,14 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { User } from '../models/User.js';
 import { PricingSetting } from '../models/PricingSetting.js';
 import { ActivityLog } from '../models/ActivityLog.js';
 import { config } from '../config/env.js';
 import { requireAuth } from '../middleware/auth.js';
 import { getProfessionConfig, PROFESSIONS } from '../config/professions.js';
+import { isEmailConfigured, sendEmail } from '../services/mailerService.js';
 
 import { rateLimit } from '../middleware/rateLimiter.js';
 import { getSubscriptionDetails } from '../services/subscriptionService.js';
@@ -194,6 +196,97 @@ router.get('/me', requireAuth, async (req, res) => {
   }
 
   res.json({ success: true, user: userObj });
+});
+
+// Request Password Reset
+router.post('/forgot-password', authRateLimiter, async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email || !email.trim()) {
+      return res.status(400).json({ success: false, error: 'Email address is required' });
+    }
+
+    // Check if mailer service is configured
+    if (!isEmailConfigured()) {
+      return res.status(400).json({
+        success: false,
+        code: 'EMAIL_NOT_CONFIGURED',
+        error: `Password reset via email is disabled on this server because no email credentials (Resend or SMTP) are configured. Please contact support at ${config.supportEmail}.`,
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
+
+    if (user) {
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+      user.passwordResetToken = hashedToken;
+      user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+      await user.save();
+
+      const resetUrl = `${config.siteUrl}/reset-password?token=${rawToken}`;
+      await sendEmail({
+        to: user.email,
+        subject: 'Reset your Floorly password',
+        html: `<p>Hello,</p><p>You requested a password reset. Click the link below to set a new password (valid for 1 hour):</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>If you did not request this, please ignore this email.</p>`,
+        text: `You requested a password reset. Visit this link to set a new password: ${resetUrl}`,
+      });
+    }
+
+    // Always return success to prevent email enumeration
+    res.json({
+      success: true,
+      message: 'If an account exists for that email, password reset instructions have been dispatched.',
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Complete Password Reset
+router.post('/reset-password', authRateLimiter, async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res.status(400).json({ success: false, error: 'Token and new password are required' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 8 characters long' });
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: new Date() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password reset link is invalid or has expired. Please request a new one.',
+      });
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    user.passwordResetToken = null;
+    user.passwordResetExpires = null;
+    await user.save();
+
+    await ActivityLog.create({
+      userId: user._id,
+      action: 'PASSWORD_RESET_COMPLETED',
+      entityType: 'User',
+      entityId: user._id.toString(),
+      details: 'Account password successfully reset via token.',
+    });
+
+    res.json({ success: true, message: 'Password reset successfully. You can now log in.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // Update Profile

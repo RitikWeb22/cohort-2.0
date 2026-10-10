@@ -1,27 +1,38 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Logo } from '../components/common/Logo';
+import { api } from '../lib/api';
+import { siteConfig } from '../config/site';
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState('');
+  const [emailNotConfigured, setEmailNotConfigured] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
       setEmailError('Enter a valid email address');
       return;
     }
     setEmailError('');
+    setEmailNotConfigured(false);
     setIsLoading(true);
 
-    // Simulate dispatch
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await api.forgotPassword(email.trim());
       setSubmitted(true);
-    }, 600);
+    } catch (err) {
+      if (err.code === 'EMAIL_NOT_CONFIGURED' || err.data?.code === 'EMAIL_NOT_CONFIGURED') {
+        setEmailNotConfigured(true);
+      } else {
+        setEmailError(err.message || 'Unable to process reset request. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -70,7 +81,60 @@ export function ForgotPasswordPage() {
             Enter your email and we'll send you instructions to reset your password.
           </p>
 
-          {submitted ? (
+          {emailNotConfigured ? (
+            <div
+              role="alert"
+              style={{
+                background: '#FEF3F2',
+                border: '1px solid #FECDCA',
+                borderRadius: '12px',
+                padding: '16px',
+                fontSize: '15px',
+                color: '#912018',
+                lineHeight: 1.5,
+              }}
+            >
+              <strong>Email Delivery Not Configured</strong>
+              <p style={{ marginTop: '6px', fontSize: '14px' }}>
+                Automated email delivery is currently disabled on this instance. To reset your password, please contact our support desk directly at{' '}
+                <a
+                  href={`mailto:${siteConfig.supportEmail}`}
+                  style={{ color: '#B42318', textDecoration: 'underline', fontWeight: 600 }}
+                >
+                  {siteConfig.supportEmail}
+                </a>{' '}
+                or visit our <Link to="/contact" style={{ color: '#B42318', textDecoration: 'underline', fontWeight: 600 }}>Contact page</Link>.
+              </p>
+              <div style={{ marginTop: '16px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <Link
+                  to="/login"
+                  style={{
+                    color: 'var(--cobalt, #0047AB)',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                  }}
+                >
+                  ← Return to sign in
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setEmailNotConfigured(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: 'var(--muted, #5B6676)',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Try another address
+                </button>
+              </div>
+            </div>
+          ) : submitted ? (
             <div
               role="status"
               aria-live="polite"

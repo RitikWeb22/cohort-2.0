@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FileText, ArrowLeft, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { Footer } from '../components/layout/Footer';
 import { Logo } from '../components/common/Logo';
+import { siteConfig } from '../config/site';
 
 export function TermsPage() {
   return (
@@ -127,8 +128,8 @@ export function TermsPage() {
               <h2 className="text-base font-bold text-charcoal-900">10. Contact Us</h2>
               <p>
                 For questions regarding these Terms & Conditions, please contact us at{' '}
-                <a href="mailto:support@floorly.ai" className="text-brand-600 underline font-semibold">
-                  support@floorly.ai
+                <a href={`mailto:${siteConfig.supportEmail}`} className="text-brand-600 underline font-semibold">
+                  {siteConfig.supportEmail}
                 </a>{' '}
                 or visit our <Link to="/contact" className="text-brand-600 underline font-semibold">Contact Page</Link>.
               </p>

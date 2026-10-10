@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ShieldCheck, ArrowLeft, Lock, EyeOff, Database, Cpu } from 'lucide-react';
 import { Footer } from '../components/layout/Footer';
 import { Logo } from '../components/common/Logo';
+import { siteConfig } from '../config/site';
 
 export function PrivacyPage() {
   return (
@@ -125,8 +126,8 @@ export function PrivacyPage() {
               <h2 className="text-base font-bold text-charcoal-900">9. Contact Our Data Protection Officer</h2>
               <p>
                 If you have questions, feedback, or data requests regarding this Privacy Policy, please contact us at{' '}
-                <a href="mailto:privacy@floorly.ai" className="text-brand-600 underline font-semibold">
-                  privacy@floorly.ai
+                <a href={`mailto:${siteConfig.privacyEmail}`} className="text-brand-600 underline font-semibold">
+                  {siteConfig.privacyEmail}
                 </a>{' '}
                 or visit our <Link to="/contact" className="text-brand-600 underline font-semibold">Contact Page</Link>.
               </p>

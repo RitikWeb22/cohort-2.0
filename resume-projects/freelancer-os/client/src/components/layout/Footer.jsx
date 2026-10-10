@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Logo } from '../common/Logo';
+import { siteConfig } from '../../config/site';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -13,8 +14,8 @@ export function Footer() {
             <Logo size="md" />
             <p style={{ marginTop: '12px', fontSize: '14px', lineHeight: '1.6', color: 'var(--muted, #5B6676)' }}>
               Never undercharge again.<br />
-              <a href="mailto:support@floorly.com" style={{ color: 'var(--cobalt, #0047AB)', textDecoration: 'none' }}>
-                support@floorly.com
+              <a href={`mailto:${siteConfig.supportEmail}`} style={{ color: 'var(--cobalt, #0047AB)', textDecoration: 'none' }}>
+                {siteConfig.supportEmail}
               </a>
             </p>
           </div>

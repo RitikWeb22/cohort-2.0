@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Logo } from '../components/common/Logo';
 import { Footer } from '../components/layout/Footer';
+import { siteConfig } from '../config/site';
 
 // Currency configurations for interactive calculator
 const CURRENCIES = {
@@ -914,7 +915,14 @@ export function LandingPage() {
                   color: 'var(--muted, #5B6676)',
                 }}
               >
-                app.floorly.com/workspace/{activeShowcase}
+                {(() => {
+                  try {
+                    const host = new URL(siteConfig.siteUrl).host;
+                    return `${host}/workspace/${activeShowcase}`;
+                  } catch {
+                    return `app.floorly.com/workspace/${activeShowcase}`;
+                  }
+                })()}
               </span>
             </div>
 

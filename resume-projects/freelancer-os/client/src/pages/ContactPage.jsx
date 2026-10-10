@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Footer } from '../components/layout/Footer';
 import { Logo } from '../components/common/Logo';
+import { siteConfig } from '../config/site';
 
 export function ContactPage() {
   const [formData, setFormData] = useState({
@@ -87,33 +88,40 @@ export function ContactPage() {
                   <div>
                     <div className="font-semibold text-charcoal-900">Email Address</div>
                     <a
-                      href="mailto:support@floorly.com"
+                      href={`mailto:${siteConfig.contactEmail || siteConfig.supportEmail}`}
                       className="text-brand-600 hover:underline font-mono text-xs"
                     >
-                      support@floorly.com [OR_YOUR_EMAIL_HERE]
+                      {siteConfig.contactEmail || siteConfig.supportEmail}
                     </a>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-charcoal-50/70 border border-charcoal-100">
-                  <Clock className="w-4 h-4 text-mint-600 mt-0.5 shrink-0" />
-                  <div>
-                    <div className="font-semibold text-charcoal-900">Phone Number</div>
-                    <div className="text-charcoal-600 font-mono text-xs">
-                      [YOUR_PHONE_NUMBER, e.g. +1 (555) 000-0000]
+                {siteConfig.contactPhone && (
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-charcoal-50/70 border border-charcoal-100">
+                    <Clock className="w-4 h-4 text-mint-600 mt-0.5 shrink-0" />
+                    <div>
+                      <div className="font-semibold text-charcoal-900">Phone Number</div>
+                      <a
+                        href={`tel:${siteConfig.contactPhone.replace(/\s+/g, '')}`}
+                        className="text-charcoal-600 hover:underline font-mono text-xs"
+                      >
+                        {siteConfig.contactPhone}
+                      </a>
                     </div>
                   </div>
-                </div>
+                )}
 
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-charcoal-50/70 border border-charcoal-100">
-                  <MapPin className="w-4 h-4 text-brand-600 mt-0.5 shrink-0" />
-                  <div>
-                    <div className="font-semibold text-charcoal-900">Registered Business Address</div>
-                    <div className="text-charcoal-600 text-xs">
-                      [YOUR_REGISTERED_BUSINESS_ADDRESS, e.g. 123 Innovation Way, Suite 400, City, Country]
+                {siteConfig.contactAddress && (
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-charcoal-50/70 border border-charcoal-100">
+                    <MapPin className="w-4 h-4 text-brand-600 mt-0.5 shrink-0" />
+                    <div>
+                      <div className="font-semibold text-charcoal-900">Registered Business Address</div>
+                      <div className="text-charcoal-600 text-xs whitespace-pre-line">
+                        {siteConfig.contactAddress}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
