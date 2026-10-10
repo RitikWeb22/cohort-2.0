@@ -50,6 +50,27 @@ router.post('/', async (req, res) => {
 
 
 
+    // Per-user daily analysis quota by subscription plan
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayCount = await RequirementAnalysis.countDocuments({
+      userId,
+      createdAt: { $gte: todayStart },
+    });
+
+    const sub = getSubscriptionDetails(req.user);
+    const dailyCap = sub.effectivePlan === 'free' ? 5 : (sub.effectivePlan === 'solo' ? 25 : 100);
+
+    if (todayCount >= dailyCap) {
+      return res.status(403).json({
+        success: false,
+        code: 'DAILY_AI_LIMIT_REACHED',
+        error: `Daily analysis quota (${dailyCap}/day) reached on your ${sub.effectivePlan} plan. Upgrade to increase daily quota.`,
+        current: todayCount,
+        maxPerDay: dailyCap,
+      });
+    }
+
     // Run the 10-stage AI Scoping pipeline
     const analysisResult = await AIRequirementAnalyzer.analyze({
       rawText,

@@ -39,17 +39,11 @@ export const config = {
   contactAddress: process.env.CONTACT_ADDRESS || '',
   legalJurisdiction: process.env.LEGAL_JURISDICTION || '',
 
-  // AI Configuration (Google Gemini)
+  // AI Configuration (Google Gemini) - Configured via environment variables only
   geminiApiKey: process.env.GEMINI_API_KEY || '',
-  aiPrimaryModel: (() => {
-    const raw = process.env.AI_PRIMARY_MODEL || process.env.GEMINI_MODEL;
-    return (raw && raw !== 'gemini-3.8-flash') ? raw : 'gemini-1.5-flash';
-  })(),
-  aiFallbackModel: process.env.AI_FALLBACK_MODEL || 'gemini-1.5-pro',
-  geminiModel: (() => {
-    const raw = process.env.AI_PRIMARY_MODEL || process.env.GEMINI_MODEL;
-    return (raw && raw !== 'gemini-3.8-flash') ? raw : 'gemini-1.5-flash';
-  })(),
+  aiPrimaryModel: process.env.AI_PRIMARY_MODEL || process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+  aiFallbackModel: process.env.AI_FALLBACK_MODEL || 'gemini-2.5-flash',
+  geminiModel: process.env.AI_PRIMARY_MODEL || process.env.GEMINI_MODEL || 'gemini-2.5-flash',
 
   // Subscription Billing System 1
   billingEnabled: process.env.BILLING_ENABLED === 'true',
@@ -61,6 +55,7 @@ export const config = {
   razorpayWebhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || '',
   morApiKey: process.env.MOR_API_KEY || '',
   morWebhookSecret: process.env.MOR_WEBHOOK_SECRET || '',
+  adminApiKey: process.env.ADMIN_API_KEY || '',
 
   // Transactional Email Service
   resendApiKey: process.env.RESEND_API_KEY || '',

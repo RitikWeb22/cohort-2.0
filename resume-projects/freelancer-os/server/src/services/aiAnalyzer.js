@@ -43,15 +43,23 @@ export class AIRequirementAnalyzer {
     return this.deterministicPipeline(sanitizedInput, input.projectType, field);
   }
 
+  static validateAnalysisSchema(obj) {
+    if (!obj || typeof obj !== 'object') return false;
+    if (typeof obj.projectTitle !== 'string' || !obj.projectTitle.trim()) return false;
+    if (!Array.isArray(obj.pagesAndFeatures) || obj.pagesAndFeatures.length === 0) return false;
+    const allValidTasks = obj.pagesAndFeatures.every(t => t && typeof t.name === 'string' && typeof t.hours === 'number' && !isNaN(t.hours));
+    if (!allValidTasks) return false;
+    return true;
+  }
+
   static async callGemini(text, projectTypeOverride, field = 'web_developer') {
     const genAI = new GoogleGenerativeAI(config.geminiApiKey);
+    // Models configured strictly via environment variables (no hardcoded fallback list)
     const candidateModels = [
       ...new Set([
-        config.geminiModel,
         config.aiPrimaryModel,
-        'gemini-2.0-flash',
-        'gemini-1.5-flash',
-        'gemini-1.5-pro',
+        config.geminiModel,
+        config.aiFallbackModel,
       ].filter(Boolean))
     ];
 
@@ -147,7 +155,7 @@ CLIENT TEXT:
         const rawContent = response.response.text();
         const cleaned = rawContent.replace(/```json/gi, '').replace(/```/g, '').trim();
         const parsed = JSON.parse(cleaned);
-        if (parsed && parsed.projectTitle) {
+        if (this.validateAnalysisSchema(parsed)) {
           // Normalize confidence ratings
           if (Array.isArray(parsed.pagesAndFeatures)) {
             parsed.pagesAndFeatures = parsed.pagesAndFeatures.map(item => ({
@@ -156,13 +164,15 @@ CLIENT TEXT:
             }));
           }
           return parsed;
+        } else {
+          logger.warn({ model: modelName }, 'AI output failed schema validation, trying next candidate');
         }
       } catch (err) {
         lastError = err;
         logger.warn({ model: modelName, err: err.message }, 'Gemini model attempt failed, trying next candidate');
       }
     }
-    throw lastError || new Error('All Gemini model calls failed');
+    throw lastError || new Error('All Gemini model calls failed schema validation');
   }
 
   /**

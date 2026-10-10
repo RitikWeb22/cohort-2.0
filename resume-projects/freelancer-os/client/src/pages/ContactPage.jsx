@@ -53,7 +53,7 @@ export function ContactPage() {
           </Link>
         </div>
         <div className="flex items-center gap-2">
-          <span className="badge-mint">24/7 Support Desk</span>
+          <span className="badge-mint">Support Desk</span>
         </div>
       </header>
 

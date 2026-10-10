@@ -74,7 +74,7 @@ export function PrivacyPage() {
                 <span>3. Zero AI Training on Your Client Briefs</span>
               </div>
               <p className="text-xs sm:text-sm text-charcoal-700">
-                Floorly connects with enterprise-tier model providers (e.g., Google Gemini API via official enterprise agreements). Under our configuration:
+                Floorly connects with model providers (such as Google Gemini API as configured in your platform settings). Under our standard API configuration:
               </p>
               <ul className="list-disc pl-5 space-y-1 text-charcoal-600 text-xs">
                 <li>Your client briefs, confidential communications, project scopes, and pricing rules are <strong>never used to train</strong> public or foundational AI models.</li>

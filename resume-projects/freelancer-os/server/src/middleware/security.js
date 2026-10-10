@@ -51,10 +51,10 @@ export function securityHeaders(req, res, next) {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   // Disable dangerous browser device features by default
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  // Content Security Policy (SEC-04)
+  // Content Security Policy - Report-Only mode during verification & staging
   res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https:;"
+    'Content-Security-Policy-Report-Only',
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https: http://localhost:5000 http://localhost:5173 ws: wss:;"
   );
   // Remove X-Powered-By header if present
   res.removeHeader('X-Powered-By');

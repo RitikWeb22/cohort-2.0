@@ -103,14 +103,58 @@ router.post('/register', authRateLimiter, async (req, res) => {
       details: `Developer workspace created for ${user.name} (${user.email})`,
     });
 
+    if (isEmailConfigured()) {
+      const crypto = await import('crypto');
+      const rawVerificationToken = crypto.randomBytes(32).toString('hex');
+      user.emailVerificationToken = crypto.createHash('sha256').update(rawVerificationToken).digest('hex');
+      user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      user.emailVerified = false;
+      await user.save();
+
+      sendEmail({
+        to: user.email,
+        subject: 'Verify your Floorly account',
+        html: `<p>Hello ${user.name},</p><p>Please verify your email by clicking: <a href="${config.siteUrl}/verify-email?token=${rawVerificationToken}">Verify Email</a></p>`,
+      }).catch(err => logger.warn({ err: err.message }, 'Failed to send signup verification email'));
+    } else {
+      user.emailVerified = true;
+      await user.save();
+    }
+
     const token = jwt.sign({ id: user._id, email: user.email }, config.jwtSecret, { expiresIn: config.jwtExpiresIn });
     const userObj = user.toObject();
     delete userObj.passwordHash;
     userObj.subscription = getSubscriptionDetails(user);
 
-    res.status(201).json({ success: true, token, user: userObj });
+    res.status(201).json({ success: true, token, user: userObj, emailVerificationRequired: !user.emailVerified });
   } catch (err) {
     res.status(500).json({ success: false, error: 'Registration failed. Please try again.' });
+  }
+});
+
+// Verify email endpoint
+router.post('/verify-email', async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ success: false, error: 'Verification token is required.' });
+    }
+    const crypto = await import('crypto');
+    const hashed = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await User.findOne({
+      emailVerificationToken: hashed,
+      emailVerificationExpires: { $gt: new Date() },
+    });
+    if (!user) {
+      return res.status(400).json({ success: false, error: 'Verification token is invalid or has expired.' });
+    }
+    user.emailVerified = true;
+    user.emailVerificationToken = null;
+    user.emailVerificationExpires = null;
+    await user.save();
+    res.json({ success: true, message: 'Email verified successfully.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'Verification failed.' });
   }
 });
 

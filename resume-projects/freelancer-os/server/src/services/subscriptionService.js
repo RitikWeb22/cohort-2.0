@@ -62,9 +62,10 @@ export function getSubscriptionDetails(user) {
   return {
     rawPlan,
     effectivePlan,
-    isPaid: effectivePlan !== 'free',
+    isPaid: effectivePlan !== 'free' && user.subscriptionStatus !== 'unpaid',
     isExpired,
     isExpiringSoon,
+    isPastDue: user.subscriptionStatus === 'past_due',
     daysRemaining,
     expiresAt: user.subscriptionExpiresAt || null,
     billingInterval: user.billingInterval || 'month',
