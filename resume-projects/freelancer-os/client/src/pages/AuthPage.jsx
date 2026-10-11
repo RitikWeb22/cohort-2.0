@@ -69,6 +69,35 @@ export function AuthPage() {
     document.title = isRegister ? 'Floorly: Create account' : 'Floorly: Sign in';
   }, [isRegister]);
 
+  // Handle Google OAuth return callback or errors
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const incomingToken = params.get('token');
+    const incomingError = params.get('error');
+    const returnTo = params.get('returnTo') || '/dashboard';
+
+    if (incomingError) {
+      setFormError(decodeURIComponent(incomingError));
+    }
+
+    if (incomingToken) {
+      localStorage.setItem('floorly_token', incomingToken);
+      localStorage.setItem('freelanceos_token', incomingToken);
+      useAuthStore.getState().fetchUser().then(() => {
+        navigate(returnTo, { replace: true });
+      });
+    }
+  }, [location.search, navigate]);
+
+  const handleGoogleAuth = () => {
+    const returnTo = location.state?.from?.pathname
+      ? `${location.state.from.pathname}${location.state.from.search || ''}`
+      : (new URLSearchParams(location.search).get('returnTo') || '/dashboard');
+    
+    // Redirect to backend Google OAuth initiation
+    window.location.href = `/api/v1/auth/google?returnTo=${encodeURIComponent(returnTo)}`;
+  };
+
   // Sync initial tab when URL changes
   useEffect(() => {
     setIsRegister(location.pathname === '/signup');
@@ -504,9 +533,9 @@ export function AuthPage() {
                 {/* Continue with Google (Secondary Button) */}
                 <button
                   type="button"
-                  disabled
-                  title="Coming soon"
-                  className="w-full py-2.5 px-4 rounded-full text-[15px] font-semibold border flex items-center justify-center gap-2.5 transition-colors cursor-not-allowed opacity-80"
+                  id="btn-google-signin"
+                  onClick={handleGoogleAuth}
+                  className="w-full py-2.5 px-4 rounded-full text-[15px] font-semibold border flex items-center justify-center gap-2.5 transition-colors cursor-pointer hover:bg-[#F9F7F1] outline-none focus-visible:ring-2 focus-visible:ring-[#0047AB]"
                   style={{
                     backgroundColor: 'var(--surface, #FFFFFF)',
                     borderColor: 'var(--line, #E8E0CF)',
@@ -515,9 +544,6 @@ export function AuthPage() {
                 >
                   <GoogleIcon className="w-4 h-4" />
                   <span>Continue with Google</span>
-                  <span className="text-[11px] font-normal px-1.5 py-0.2 rounded text-[#5B6676] bg-[#FAF5EA] border border-[#E8E0CF]">
-                    Coming soon
-                  </span>
                 </button>
 
                 {/* Footer Switch Tab */}
@@ -854,9 +880,9 @@ export function AuthPage() {
                 {/* Google Button */}
                 <button
                   type="button"
-                  disabled
-                  title="Coming soon"
-                  className="w-full py-2 px-4 rounded-full text-[14px] font-semibold border flex items-center justify-center gap-2 transition-colors cursor-not-allowed opacity-80"
+                  id="btn-google-signup"
+                  onClick={handleGoogleAuth}
+                  className="w-full py-2 px-4 rounded-full text-[14px] font-semibold border flex items-center justify-center gap-2 transition-colors cursor-pointer hover:bg-[#F9F7F1] outline-none focus-visible:ring-2 focus-visible:ring-[#0047AB]"
                   style={{
                     backgroundColor: 'var(--surface, #FFFFFF)',
                     borderColor: 'var(--line, #E8E0CF)',
@@ -865,9 +891,6 @@ export function AuthPage() {
                 >
                   <GoogleIcon className="w-3.5 h-3.5" />
                   <span>Continue with Google</span>
-                  <span className="text-[10px] font-normal px-1.5 py-0.2 rounded text-[#5B6676] bg-[#FAF5EA] border border-[#E8E0CF]">
-                    Coming soon
-                  </span>
                 </button>
 
                 {/* Footer Switch Tab */}

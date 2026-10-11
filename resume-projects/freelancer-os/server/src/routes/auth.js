@@ -9,6 +9,7 @@ import { config } from '../config/env.js';
 import { requireAuth } from '../middleware/auth.js';
 import { getProfessionConfig, PROFESSIONS } from '../config/professions.js';
 import { isEmailConfigured, sendEmail } from '../services/mailerService.js';
+import { logger } from '../logger.js';
 
 import { rateLimit } from '../middleware/rateLimiter.js';
 import { getSubscriptionDetails } from '../services/subscriptionService.js';
@@ -620,6 +621,300 @@ router.get('/export-data', requireAuth, async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="floorly-export-${Date.now()}.json"`);
     res.send(JSON.stringify(exportPayload, null, 2));
   } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// =============================================================================
+// GOOGLE OAUTH 2.0 & GOOGLE SIGN-IN ENDPOINTS
+// =============================================================================
+
+/**
+ * GET /api/v1/auth/google/config
+ * Returns Google OAuth client availability
+ */
+router.get('/google/config', (req, res) => {
+  res.json({
+    success: true,
+    enabled: Boolean(config.googleClientId),
+    clientId: config.googleClientId || null,
+  });
+});
+
+/**
+ * GET /api/v1/auth/google
+ * Initiates Google OAuth 2.0 authorization redirect
+ */
+router.get('/google', (req, res) => {
+  if (!config.googleClientId) {
+    return res.status(503).json({
+      success: false,
+      error: 'Google OAuth is not configured on this server (GOOGLE_CLIENT_ID missing).',
+    });
+  }
+
+  // Determine callback URI based on current server domain
+  const callbackUri = `${config.siteUrl.replace(/\/$/, '')}/api/v1/auth/google/callback`;
+  const returnTo = req.query.returnTo || '/dashboard';
+  const state = encodeURIComponent(returnTo);
+
+  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
+    config.googleClientId
+  )}&redirect_uri=${encodeURIComponent(callbackUri)}&response_type=code&scope=openid%20email%20profile&access_type=offline&state=${state}&prompt=select_account`;
+
+  res.redirect(googleAuthUrl);
+});
+
+/**
+ * GET /api/v1/auth/google/callback
+ * Handles Google OAuth redirect callback, code exchange, and session issuance
+ */
+router.get('/google/callback', async (req, res) => {
+  const { code, state, error } = req.query;
+  const returnTo = state ? decodeURIComponent(state) : '/dashboard';
+
+  if (error || !code) {
+    return res.redirect(
+      `${config.frontendUrl}/login?error=${encodeURIComponent(
+        error || 'Google login was cancelled or denied.'
+      )}`
+    );
+  }
+
+  try {
+    const callbackUri = `${config.siteUrl.replace(/\/$/, '')}/api/v1/auth/google/callback`;
+
+    // 1. Exchange authorization code for tokens
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code: String(code),
+        client_id: config.googleClientId,
+        client_secret: config.googleClientSecret,
+        redirect_uri: callbackUri,
+        grant_type: 'authorization_code',
+      }),
+    });
+
+    const tokenData = await tokenResponse.json();
+    if (!tokenResponse.ok || !tokenData.access_token) {
+      logger.error({ tokenData }, 'Google token exchange failed');
+      return res.redirect(
+        `${config.frontendUrl}/login?error=Failed+to+exchange+Google+authorization+code`
+      );
+    }
+
+    // 2. Fetch user profile from Google UserInfo
+    const userResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+    const profile = await userResponse.json();
+
+    if (!userResponse.ok || !profile.email) {
+      return res.redirect(
+        `${config.frontendUrl}/login?error=Could+not+retrieve+Google+account+profile`
+      );
+    }
+
+    const normalizedEmail = profile.email.toLowerCase().trim();
+
+    // 3. Find or Create User
+    let user = await User.findOne({
+      $or: [{ googleId: profile.sub }, { email: normalizedEmail }],
+    });
+
+    if (!user) {
+      const randomPassword = crypto.randomBytes(32).toString('hex');
+      const passwordHash = await bcrypt.hash(randomPassword, 10);
+      const selectedField = 'web_developer';
+      const profConfig = getProfessionConfig(selectedField);
+
+      user = await User.create({
+        name: profile.name || profile.given_name || 'Google User',
+        email: normalizedEmail,
+        passwordHash,
+        googleId: profile.sub,
+        authProvider: 'google',
+        emailVerified: Boolean(profile.email_verified),
+        businessName: `${profile.name || 'Developer'}'s Dev Studio`,
+        businessEmail: normalizedEmail,
+        field: selectedField,
+      });
+
+      const categoryMinimums = {};
+      for (const cat of profConfig.categories) {
+        categoryMinimums[cat.id] = cat.floor;
+      }
+
+      await PricingSetting.create({
+        userId: user._id,
+        hourlyRate: profConfig.defaultHourlyRate,
+        minHourlyRate: profConfig.defaultMinHourlyRate,
+        minProjectFee: profConfig.defaultMinProjectFee,
+        categoryMinimums,
+        defaultBufferPercent: 15,
+        complexityMultipliers: { simple: 1.0, medium: 1.25, complex: 1.5 },
+        rushMultiplier: 1.3,
+        revisionAllowance: 2,
+        defaultContingencyPercent: 10,
+        preferredProfitMargin: 25,
+        currency: 'USD',
+      });
+
+      await ActivityLog.create({
+        userId: user._id,
+        action: 'USER_REGISTERED_GOOGLE',
+        entityType: 'User',
+        entityId: user._id.toString(),
+        details: `Workspace created via Google OAuth for ${user.name} (${user.email})`,
+      });
+    } else {
+      let needsSave = false;
+      if (!user.googleId) {
+        user.googleId = profile.sub;
+        user.authProvider = user.authProvider || 'google';
+        needsSave = true;
+      }
+      if (profile.email_verified && !user.emailVerified) {
+        user.emailVerified = true;
+        needsSave = true;
+      }
+      if (needsSave) {
+        await user.save();
+      }
+    }
+
+    // 4. Issue standard platform JWT
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      config.jwtSecret,
+      { expiresIn: config.jwtExpiresIn }
+    );
+
+    // 5. Redirect back to frontend with token
+    res.redirect(
+      `${config.frontendUrl}/login?token=${token}&returnTo=${encodeURIComponent(returnTo)}`
+    );
+  } catch (err) {
+    logger.error({ err: err.message }, 'Google OAuth callback exception');
+    res.redirect(
+      `${config.frontendUrl}/login?error=Google+authentication+encountered+an+unexpected+error`
+    );
+  }
+});
+
+/**
+ * POST /api/v1/auth/google/verify
+ * Verifies Google ID token directly (Google Identity Services One-Tap / popup)
+ */
+router.post('/google/verify', authRateLimiter, async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential || typeof credential !== 'string') {
+      return res.status(400).json({ success: false, error: 'Google credential ID token is required' });
+    }
+
+    // Validate ID token via Google's tokeninfo API
+    const verifyRes = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+    );
+    const payload = await verifyRes.json();
+
+    if (!verifyRes.ok || !payload.email) {
+      return res.status(401).json({ success: false, error: 'Invalid or expired Google credential' });
+    }
+
+    // Audience check against configured Client ID
+    if (config.googleClientId && payload.aud !== config.googleClientId) {
+      logger.warn({ aud: payload.aud, expected: config.googleClientId }, 'Google ID token audience mismatch');
+      return res.status(401).json({ success: false, error: 'Google credential audience mismatch' });
+    }
+
+    const normalizedEmail = payload.email.toLowerCase().trim();
+
+    let user = await User.findOne({
+      $or: [{ googleId: payload.sub }, { email: normalizedEmail }],
+    });
+
+    if (!user) {
+      const randomPassword = crypto.randomBytes(32).toString('hex');
+      const passwordHash = await bcrypt.hash(randomPassword, 10);
+      const selectedField = 'web_developer';
+      const profConfig = getProfessionConfig(selectedField);
+
+      user = await User.create({
+        name: payload.name || payload.given_name || 'Google User',
+        email: normalizedEmail,
+        passwordHash,
+        googleId: payload.sub,
+        authProvider: 'google',
+        emailVerified: Boolean(payload.email_verified),
+        businessName: `${payload.name || 'Developer'}'s Dev Studio`,
+        businessEmail: normalizedEmail,
+        field: selectedField,
+      });
+
+      const categoryMinimums = {};
+      for (const cat of profConfig.categories) {
+        categoryMinimums[cat.id] = cat.floor;
+      }
+
+      await PricingSetting.create({
+        userId: user._id,
+        hourlyRate: profConfig.defaultHourlyRate,
+        minHourlyRate: profConfig.defaultMinHourlyRate,
+        minProjectFee: profConfig.defaultMinProjectFee,
+        categoryMinimums,
+        defaultBufferPercent: 15,
+        complexityMultipliers: { simple: 1.0, medium: 1.25, complex: 1.5 },
+        rushMultiplier: 1.3,
+        revisionAllowance: 2,
+        defaultContingencyPercent: 10,
+        preferredProfitMargin: 25,
+        currency: 'USD',
+      });
+
+      await ActivityLog.create({
+        userId: user._id,
+        action: 'USER_REGISTERED_GOOGLE_IDTOKEN',
+        entityType: 'User',
+        entityId: user._id.toString(),
+        details: `Workspace created via Google ID token for ${user.name} (${user.email})`,
+      });
+    } else {
+      let needsSave = false;
+      if (!user.googleId) {
+        user.googleId = payload.sub;
+        user.authProvider = user.authProvider || 'google';
+        needsSave = true;
+      }
+      if (payload.email_verified && !user.emailVerified) {
+        user.emailVerified = true;
+        needsSave = true;
+      }
+      if (needsSave) {
+        await user.save();
+      }
+    }
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      config.jwtSecret,
+      { expiresIn: config.jwtExpiresIn }
+    );
+
+    const userObj = user.toObject();
+    delete userObj.passwordHash;
+    userObj.subscription = getSubscriptionDetails(user);
+
+    res.json({
+      success: true,
+      token,
+      user: userObj,
+    });
+  } catch (err) {
+    logger.error({ err: err.message }, 'Google token verification error');
     res.status(500).json({ success: false, error: err.message });
   }
 });

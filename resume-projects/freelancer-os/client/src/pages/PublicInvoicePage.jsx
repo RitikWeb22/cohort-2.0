@@ -19,6 +19,9 @@ export function PublicInvoicePage() {
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
   const [copiedKey, setCopiedKey] = useState(null);
+  const [isPayingRazorpay, setIsPayingRazorpay] = useState(false);
+  const [paySuccessMsg, setPaySuccessMsg] = useState('');
+  const [payErrorMsg, setPayErrorMsg] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -54,6 +57,91 @@ export function PublicInvoicePage() {
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
     setTimeout(() => setCopiedKey(null), 2000);
+  };
+
+  const handleRazorpayPayment = async () => {
+    try {
+      setIsPayingRazorpay(true);
+      setPayErrorMsg('');
+
+      const res = await fetch(`/api/v1/public/invoices/${token}/razorpay/order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const orderInfo = await res.json();
+      if (!res.ok || !orderInfo.success) {
+        throw new Error(orderInfo.error || 'Failed to initialize Razorpay checkout');
+      }
+
+      if (!window.Razorpay) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.onload = resolve;
+          script.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
+          document.body.appendChild(script);
+        });
+      }
+
+      const options = {
+        key: orderInfo.keyId,
+        amount: orderInfo.amount,
+        currency: orderInfo.currency || 'INR',
+        name: data?.user?.businessName || data?.user?.name || 'Floorly Invoice',
+        description: `Payment for Invoice #${data?.invoice?.invoiceNumber}`,
+        order_id: orderInfo.orderId,
+        prefill: {
+          name: data?.client?.name || '',
+          email: data?.client?.email || '',
+        },
+        theme: {
+          color: '#0047AB',
+        },
+        handler: async function (response) {
+          try {
+            const verifyRes = await fetch(`/api/v1/public/invoices/${token}/razorpay/verify`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            const verifyData = await verifyRes.json();
+            if (verifyRes.ok && verifyData.success) {
+              setPaySuccessMsg(`Payment of ₹${(orderInfo.amount / 100).toLocaleString('en-IN')} verified and settled!`);
+              setData((prev) => ({
+                ...prev,
+                invoice: {
+                  ...prev.invoice,
+                  status: 'paid',
+                  balanceDue: 0,
+                  amountPaid: prev.invoice.totalAmount,
+                },
+              }));
+            } else {
+              setPayErrorMsg(verifyData.error || 'Payment verification failed');
+            }
+          } catch (e) {
+            setPayErrorMsg(e.message || 'Payment verification encountered an error');
+          } finally {
+            setIsPayingRazorpay(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setIsPayingRazorpay(false);
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      setPayErrorMsg(err.message || 'Could not initiate Razorpay checkout');
+      setIsPayingRazorpay(false);
+    }
   };
 
   if (loading) {
@@ -148,6 +236,13 @@ export function PublicInvoicePage() {
 
       {/* Main content view */}
       <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-8 space-y-6">
+        {paySuccessMsg && (
+          <div className="p-4 bg-[#ECFDF3] border border-[#A6F4C5] rounded-xl flex items-center gap-3 text-sm text-[#067647] font-semibold">
+            <CheckCircle2 className="w-5 h-5 text-[#067647] shrink-0" />
+            <span>{paySuccessMsg}</span>
+          </div>
+        )}
+
         {/* Payment instructions callout if balance remains */}
         {!isPaid && paymentMethods && (
           <div className="bg-white rounded-2xl border border-[#E8E0CF] p-5 sm:p-6 shadow-xs">
@@ -221,6 +316,35 @@ export function PublicInvoicePage() {
                     </div>
                   )}
                 </div>
+
+                {/* Live Razorpay Checkout Option for INR */}
+                {currency === 'INR' && (
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={handleRazorpayPayment}
+                      disabled={isPayingRazorpay}
+                      className="w-full py-3 px-5 rounded-xl font-bold text-white bg-[#0047AB] hover:bg-[#003A8C] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-[#0047AB] disabled:opacity-60"
+                    >
+                      {isPayingRazorpay ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Opening Razorpay Secure Checkout...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="w-4 h-4" />
+                          <span>Pay ₹{Number(invoice.balanceDue).toLocaleString('en-IN')} with Razorpay (UPI / Cards / NetBanking)</span>
+                        </>
+                      )}
+                    </button>
+                    {payErrorMsg && (
+                      <p className="mt-2 text-xs text-[#B42318] bg-[#FEE4E2] p-2 rounded-lg text-center font-medium">
+                        {payErrorMsg}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

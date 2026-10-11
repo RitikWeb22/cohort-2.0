@@ -196,6 +196,80 @@ router.post('/verify-session', requireAuth, async (req, res) => {
 });
 
 /**
+ * POST /api/v1/subscription/razorpay/verify
+ * Verifies Razorpay checkout HMAC signature and activates subscription plan
+ */
+router.post('/razorpay/verify', requireAuth, async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan, interval } = req.body;
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing Razorpay verification parameters (razorpay_order_id, razorpay_payment_id, razorpay_signature required).',
+      });
+    }
+
+    if (!config.razorpayKeySecret) {
+      return res.status(500).json({
+        success: false,
+        error: 'RAZORPAY_KEY_SECRET is not configured on this server.',
+      });
+    }
+
+    const payload = `${razorpay_order_id}|${razorpay_payment_id}`;
+    const expectedSignature = crypto
+      .createHmac('sha256', config.razorpayKeySecret)
+      .update(payload)
+      .digest('hex');
+
+    if (!constantTimeKeyCompare(razorpay_signature, expectedSignature)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid Razorpay payment signature.',
+      });
+    }
+
+    const targetPlan = SAAS_PLANS[plan];
+    if (!targetPlan || plan === 'free') {
+      return res.status(400).json({ success: false, error: 'Invalid plan selected for upgrade.' });
+    }
+
+    const user = await User.findById(req.user._id);
+    const durationDays = interval === 'year' ? 365 : 30;
+    const expiresAt = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
+
+    user.plan = plan;
+    user.subscriptionProvider = 'razorpay';
+    user.subscriptionId = razorpay_payment_id;
+    user.subscriptionStatus = 'active';
+    user.subscriptionExpiresAt = expiresAt;
+    user.gracePeriodExpiresAt = null;
+    user.cancelAtPeriodEnd = false;
+    user.billingInterval = interval === 'year' ? 'year' : 'month';
+    await user.save();
+
+    await ActivityLog.create({
+      userId: user._id,
+      action: 'SUBSCRIPTION_UPGRADED_RAZORPAY',
+      entityType: 'User',
+      entityId: user._id.toString(),
+      details: `Subscription successfully upgraded to ${targetPlan.name} tier via Razorpay (Payment ID: ${razorpay_payment_id})`,
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully upgraded to ${targetPlan.name} plan!`,
+      plan: user.plan,
+      subscription: getSubscriptionDetails(user),
+    });
+  } catch (err) {
+    logger.error({ err: err.message }, 'Razorpay subscription verification error');
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+/**
  * POST /api/v1/subscription/admin-override-plan
  * Admin-only plan override.
  * Safeguards:

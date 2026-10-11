@@ -21,6 +21,8 @@ export const config = {
   jwtSecret: process.env.JWT_SECRET || (nodeEnv === 'test' ? 'test-secret-key-32-chars-long-minimum' : 'floorly-super-secret-jwt-key-2026-secure-development-only'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   adminApiKey: process.env.ADMIN_API_KEY || '',
+  googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
 
   // Database (REQUIRED)
   mongoUri: process.env.MONGO_URI || '',

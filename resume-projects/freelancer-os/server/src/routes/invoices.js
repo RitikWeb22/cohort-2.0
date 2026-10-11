@@ -620,6 +620,78 @@ router.post('/:id/payment-gateway', async (req, res) => {
   }
 });
 
+// Verify and record Razorpay payment on invoice
+router.post('/:id/razorpay/verify', async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const invoice = await Invoice.findOne({ _id: req.params.id, userId });
+    if (!invoice) {
+      return res.status(404).json({ success: false, error: 'Invoice not found' });
+    }
+
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing Razorpay signature verification parameters (order_id, payment_id, signature required).',
+      });
+    }
+
+    if (!config.razorpayKeySecret) {
+      return res.status(500).json({
+        success: false,
+        error: 'RAZORPAY_KEY_SECRET is not configured on this server.',
+      });
+    }
+
+    const crypto = await import('crypto');
+    const expectedSignature = crypto
+      .createHmac('sha256', config.razorpayKeySecret)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest('hex');
+
+    if (expectedSignature !== razorpay_signature) {
+      return res.status(400).json({ success: false, error: 'Invalid Razorpay payment signature' });
+    }
+
+    const paymentAmount = invoice.balanceDue;
+    const newPayment = await Payment.create({
+      userId,
+      invoiceId: invoice._id,
+      clientId: invoice.clientId,
+      amount: paymentAmount,
+      currency: invoice.currency,
+      paymentDate: new Date(),
+      paymentMethod: 'razorpay',
+      transactionReference: razorpay_payment_id,
+      notes: `Verified Razorpay payment (Order: ${razorpay_order_id})`,
+    });
+
+    invoice.amountPaid = (invoice.amountPaid || 0) + paymentAmount;
+    invoice.balanceDue = 0;
+    invoice.status = 'paid';
+    await invoice.save();
+
+    await ActivityLog.create({
+      userId,
+      action: 'RECORD_PAYMENT_RAZORPAY',
+      entityType: 'Invoice',
+      entityId: invoice._id.toString(),
+      details: `Settled balance of ₹${paymentAmount.toLocaleString('en-IN')} via Razorpay for invoice ${invoice.invoiceNumber}.`,
+    });
+
+    res.json({
+      success: true,
+      message: 'Razorpay payment verified and recorded successfully.',
+      payment: newPayment,
+      invoice,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
 // Backward compatible Stripe Payment Link endpoint
 router.post('/:id/stripe-payment-link', async (req, res) => {
   // Delegate to payment-gateway handler
