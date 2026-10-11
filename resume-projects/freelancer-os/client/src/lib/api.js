@@ -2,7 +2,8 @@
  * API client helper for Floorly
  */
 
-const API_BASE = '/api/v1';
+const rawBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE = rawBase ? (rawBase.endsWith('/api/v1') ? rawBase : `${rawBase.replace(/\/$/, '')}/api/v1`) : '/api/v1';
 
 export async function apiRequest(endpoint, options = {}) {
   const token = localStorage.getItem('floorly_token') || localStorage.getItem('freelanceos_token');

@@ -56,6 +56,9 @@ export const config = {
   morApiKey: process.env.MOR_API_KEY || '',
   morWebhookSecret: process.env.MOR_WEBHOOK_SECRET || '',
   adminApiKey: process.env.ADMIN_API_KEY || '',
+  adminOverrideEnabled: process.env.ADMIN_OVERRIDE_ENABLED === 'true',
+  adminIpAllowlist: process.env.ADMIN_IP_ALLOWLIST ? process.env.ADMIN_IP_ALLOWLIST.split(',').map((s) => s.trim()).filter(Boolean) : [],
+  gracePeriodDays: parseInt(process.env.GRACE_PERIOD_DAYS || '7', 10),
 
   // Transactional Email Service
   resendApiKey: process.env.RESEND_API_KEY || '',
@@ -83,6 +86,13 @@ export function validateRequiredEnv() {
       missing.push('JWT_SECRET (must be configured in production)');
     } else if (process.env.JWT_SECRET.length < 32) {
       missing.push('JWT_SECRET (must be at least 32 characters in production)');
+    }
+  }
+
+  // Enforce ADMIN_API_KEY length >= 32 at startup when admin override endpoint is enabled
+  if (config.adminOverrideEnabled) {
+    if (!config.adminApiKey || config.adminApiKey.length < 32) {
+      missing.push('ADMIN_API_KEY (must be at least 32 characters when ADMIN_OVERRIDE_ENABLED=true)');
     }
   }
 

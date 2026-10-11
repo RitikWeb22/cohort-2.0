@@ -9,4 +9,8 @@ const activityLogSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now },
 });
 
+// Production scale indexing & automated 90-day TTL data retention
+activityLogSchema.index({ userId: 1, timestamp: -1 });
+activityLogSchema.index({ timestamp: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
+
 export const ActivityLog = mongoose.model('ActivityLog', activityLogSchema);

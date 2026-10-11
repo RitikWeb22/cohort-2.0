@@ -58,7 +58,8 @@ export function InvoiceDocumentSheet({
   const businessAddress = user?.businessAddress || '';
   const taxId = user?.taxId || invoice.taxId || '';
   const taxLabel = user?.taxType || invoice.taxType || 'VAT';
-  const logoUrl = user?.logoUrl || '';
+  const logoUrl = invoice?.logoUrl || user?.logoUrl || '';
+  const signatureUrl = invoice?.signatureUrl || user?.signatureUrl || '';
 
   // Client details
   const effectiveClient = client || invoice.client || invoice.clientId || {};
@@ -522,11 +523,12 @@ export function InvoiceDocumentSheet({
         {/* =============================================================
            6. NOTES & TERMS
            ============================================================= */}
-        {(sanitizeFreeText(invoice.lateFeeTerms) || sanitizeFreeText(invoice.notes)) && (
-          <section className="py-6 border-b border-[#D9D4C7] space-y-2 invoice-notes-terms-box relative z-10 text-xs">
-            <h2
-              className="text-xs font-bold text-[#5B6676] uppercase tracking-wider"
-            >
+        {/* =============================================================
+           6. NOTES & TERMS / SIGN-OFF
+           ============================================================= */}
+        <section className="py-6 border-b border-[#D9D4C7] invoice-notes-terms-box relative z-10 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+          <div className="max-w-md space-y-2">
+            <h2 className="text-xs font-bold text-[#5B6676] uppercase tracking-wider">
               Notes & terms
             </h2>
             {sanitizeFreeText(invoice.lateFeeTerms) && (
@@ -542,8 +544,30 @@ export function InvoiceDocumentSheet({
             <p className="text-[11px] text-[#5B6676] pt-1">
               Thank you for your business.
             </p>
-          </section>
-        )}
+          </div>
+
+          <div className="text-left sm:text-right shrink-0 min-w-[140px] sm:ml-auto">
+            <div className="min-h-[38px] flex items-end sm:justify-end mb-1">
+              {signatureUrl ? (
+                <img
+                  src={signatureUrl}
+                  alt="Authorized signature"
+                  className="max-h-11 w-auto object-contain block sm:ml-auto"
+                />
+              ) : (
+                <span className="font-semibold text-xs text-[#0E1A2B]">
+                  {user?.name || user?.fullName || businessName}
+                </span>
+              )}
+            </div>
+            <div className="border-t border-[#0E1A2B] pt-1 text-[10px] uppercase tracking-wider text-[#5B6676]">
+              Authorized signature
+            </div>
+            <div className="font-semibold text-[#0E1A2B] text-xs mt-0.5">
+              {businessName}
+            </div>
+          </div>
+        </section>
 
         {/* =============================================================
            7. DOCUMENT FOOTER (Page number & branding)

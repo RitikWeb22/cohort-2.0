@@ -65,5 +65,8 @@ const proposalSchema = new mongoose.Schema({
 });
 
 proposalSchema.index({ userId: 1, proposalNumber: 1 }, { unique: true });
+proposalSchema.index({ userId: 1, createdAt: -1 });
+proposalSchema.index({ userId: 1, status: 1 });
+proposalSchema.index({ clientId: 1, userId: 1 });
 
 export const Proposal = mongoose.model('Proposal', proposalSchema);

@@ -318,10 +318,13 @@ router.get('/:id', async (req, res) => {
       payments,
       user: {
         fullName: req.user.fullName,
+        name: req.user.name || req.user.fullName,
         businessName: req.user.businessName,
         businessEmail: req.user.businessEmail,
         businessPhone: req.user.businessPhone,
         businessAddress: req.user.businessAddress,
+        logoUrl: req.user.logoUrl,
+        signatureUrl: req.user.signatureUrl,
         currency: req.user.currency,
         taxType: req.user.taxType,
         taxRate: req.user.taxRate,
@@ -331,6 +334,7 @@ router.get('/:id', async (req, res) => {
         paypalEmail: req.user.paypalEmail,
         iban: req.user.iban,
         swiftBic: req.user.swiftBic,
+        plan: req.user.plan,
       },
     });
   } catch (err) {
@@ -512,11 +516,17 @@ router.get('/payments/:paymentId/receipt', async (req, res) => {
       client,
       user: {
         fullName: req.user.fullName,
+        name: req.user.name || req.user.fullName,
         businessName: req.user.businessName,
         businessEmail: req.user.businessEmail,
         businessPhone: req.user.businessPhone,
         businessAddress: req.user.businessAddress,
+        logoUrl: req.user.logoUrl,
+        signatureUrl: req.user.signatureUrl,
         currency: req.user.currency,
+        taxId: req.user.taxId,
+        taxType: req.user.taxType,
+        plan: req.user.plan,
       },
     });
   } catch (err) {

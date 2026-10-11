@@ -56,8 +56,8 @@ export function ProposalDocument({
   const businessAddress = user?.businessAddress || '';
   const taxId = user?.taxId || proposal.taxId || '';
   const taxLabel = user?.taxType || proposal.taxType || 'VAT';
-  const logoUrl = user?.logoUrl || '';
-  const signatureUrl = user?.signatureUrl || '';
+  const logoUrl = proposal?.logoUrl || user?.logoUrl || '';
+  const signatureUrl = proposal?.signatureUrl || user?.signatureUrl || '';
 
   // Client details
   const effectiveClient = client || proposal.client || proposal.clientId || {};

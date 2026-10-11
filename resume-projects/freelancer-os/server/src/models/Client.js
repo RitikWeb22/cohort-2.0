@@ -25,4 +25,8 @@ const clientSchema = new mongoose.Schema({
   timestamps: true,
 });
 
+// Production scale compound indexes (ESR rule)
+clientSchema.index({ userId: 1, createdAt: -1 });
+clientSchema.index({ userId: 1, status: 1, createdAt: -1 });
+
 export const Client = mongoose.model('Client', clientSchema);

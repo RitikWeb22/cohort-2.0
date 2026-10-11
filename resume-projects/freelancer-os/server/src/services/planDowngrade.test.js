@@ -59,4 +59,86 @@ describe('Plan Downgrade & Client Preservation Suite', () => {
     expect(responseBody.current).toBe(4);
     expect(responseBody.maxClients).toBe(2);
   });
+
+  describe('Lifecycle Rule: past_due Grace Period', () => {
+    it('retains paid tier access while within the 7-day grace period', () => {
+      const userInGrace = {
+        _id: 'user_grace_1',
+        plan: 'pro',
+        subscriptionStatus: 'past_due',
+        gracePeriodExpiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days left
+      };
+
+      const sub = getSubscriptionDetails(userInGrace);
+      expect(sub.isPastDue).toBe(true);
+      expect(sub.inGracePeriod).toBe(true);
+      expect(sub.effectivePlan).toBe('pro');
+      expect(sub.limits.maxClients).toBe(Infinity);
+      expect(sub.limits.canGenerateAgentsDoc).toBe(true);
+    });
+
+    it('downgrades to Starter (free) once the grace period expires', () => {
+      const userGraceExpired = {
+        _id: 'user_grace_2',
+        plan: 'pro',
+        subscriptionStatus: 'past_due',
+        gracePeriodExpiresAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // Expired yesterday
+      };
+
+      const sub = getSubscriptionDetails(userGraceExpired);
+      expect(sub.isPastDue).toBe(true);
+      expect(sub.inGracePeriod).toBe(false);
+      expect(sub.isExpired).toBe(true);
+      expect(sub.effectivePlan).toBe('free');
+      expect(sub.limits.maxClients).toBe(2);
+      expect(sub.limits.canGenerateAgentsDoc).toBe(false);
+    });
+  });
+
+  describe('Lifecycle Rule: Cancellation Retains Access Until Period End', () => {
+    it('maintains paid access until subscriptionExpiresAt when cancelAtPeriodEnd is true', () => {
+      const userCancelling = {
+        _id: 'user_cancelling_1',
+        plan: 'pro',
+        subscriptionStatus: 'active',
+        cancelAtPeriodEnd: true,
+        subscriptionExpiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days left in period
+      };
+
+      const sub = getSubscriptionDetails(userCancelling);
+      expect(sub.cancelAtPeriodEnd).toBe(true);
+      expect(sub.isExpired).toBe(false);
+      expect(sub.effectivePlan).toBe('pro');
+    });
+
+    it('downgrades to Starter (free) after billing period ends for cancelled subscription', () => {
+      const userPeriodEnded = {
+        _id: 'user_cancelling_2',
+        plan: 'pro',
+        subscriptionStatus: 'active',
+        cancelAtPeriodEnd: true,
+        subscriptionExpiresAt: new Date(Date.now() - 3600 * 1000), // Ended 1 hour ago
+      };
+
+      const sub = getSubscriptionDetails(userPeriodEnded);
+      expect(sub.isExpired).toBe(true);
+      expect(sub.effectivePlan).toBe('free');
+    });
+  });
+
+  describe('Lifecycle Rule: Refund Revocation Policy', () => {
+    it('immediately revokes paid access when subscriptionStatus is set to revoked following full refund', () => {
+      const userRevoked = {
+        _id: 'user_refund_1',
+        plan: 'pro',
+        subscriptionStatus: 'revoked',
+        subscriptionExpiresAt: new Date(),
+      };
+
+      const sub = getSubscriptionDetails(userRevoked);
+      expect(sub.effectivePlan).toBe('free');
+      expect(sub.isPaid).toBe(false);
+      expect(sub.status).toBe('revoked');
+    });
+  });
 });

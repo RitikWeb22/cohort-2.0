@@ -43,4 +43,8 @@ const requirementAnalysisSchema = new mongoose.Schema({
   timestamps: true,
 });
 
+// Production scale compound indexes (ESR rule)
+requirementAnalysisSchema.index({ userId: 1, createdAt: -1 });
+requirementAnalysisSchema.index({ clientId: 1, userId: 1 });
+
 export const RequirementAnalysis = mongoose.model('RequirementAnalysis', requirementAnalysisSchema);

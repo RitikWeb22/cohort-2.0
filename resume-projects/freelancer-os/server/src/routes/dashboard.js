@@ -7,11 +7,13 @@ import { Proposal } from '../models/Proposal.js';
 import { ActivityLog } from '../models/ActivityLog.js';
 import { PricingSetting } from '../models/PricingSetting.js';
 import { requireAuth } from '../middleware/auth.js';
+import { cacheMiddleware } from '../services/redisService.js';
 
 const router = express.Router();
 router.use(requireAuth);
 
-router.get('/metrics', async (req, res) => {
+// High-performance Redis cached metrics (60s TTL) to absorb 1M+ user traffic bursts
+router.get('/metrics', cacheMiddleware({ ttl: 60 }), async (req, res) => {
   try {
     const userId = req.user._id;
 

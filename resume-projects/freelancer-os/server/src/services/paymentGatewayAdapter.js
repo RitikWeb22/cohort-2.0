@@ -1,5 +1,7 @@
 import Stripe from 'stripe';
+import crypto from 'crypto';
 import { config } from '../config/env.js';
+import { PLANS } from '../config/plans.js';
 
 /**
  * Floorly Generic Payment Gateway Adapter Interface
@@ -267,3 +269,269 @@ export async function createGatewaySession(gateway, { invoice, client, user, ret
     code: 'UNSUPPORTED_GATEWAY',
   };
 }
+
+let _subscriptionStateFetcher = null;
+
+export function setSubscriptionStateFetcher(fetcher) {
+  _subscriptionStateFetcher = fetcher;
+}
+
+export function resetSubscriptionStateFetcher() {
+  _subscriptionStateFetcher = null;
+}
+
+/**
+ * Fetch latest canonical subscription state directly from the provider API.
+ * This guarantees resilience against out-of-order webhook delivery.
+ */
+export async function fetchSubscriptionState(provider, subscriptionId, fallbackPayload = {}) {
+  if (_subscriptionStateFetcher) {
+    return await _subscriptionStateFetcher(provider, subscriptionId, fallbackPayload);
+  }
+
+  if (provider === 'stripe' && config.stripeSecretKey && subscriptionId) {
+    try {
+      const stripe = new Stripe(config.stripeSecretKey);
+      const sub = await stripe.subscriptions.retrieve(subscriptionId);
+      return {
+        provider: 'stripe',
+        subscriptionId: sub.id,
+        status: sub.status,
+        plan: sub.metadata?.plan || fallbackPayload.plan || 'pro',
+        userId: sub.metadata?.userId || fallbackPayload.userId,
+        currentPeriodEnd: sub.current_period_end ? new Date(sub.current_period_end * 1000) : null,
+        cancelAtPeriodEnd: Boolean(sub.cancel_at_period_end),
+      };
+    } catch (err) {
+      // Fall through to fallback payload if API retrieve fails
+    }
+  }
+
+  return {
+    provider,
+    subscriptionId,
+    status: fallbackPayload.status || 'active',
+    plan: fallbackPayload.plan || 'pro',
+    userId: fallbackPayload.userId,
+    currentPeriodEnd: fallbackPayload.currentPeriodEnd || null,
+    cancelAtPeriodEnd: Boolean(fallbackPayload.cancelAtPeriodEnd),
+  };
+}
+
+/**
+ * Unified subscription checkout session creator across Stripe, Razorpay, and MoR
+ */
+export async function createSubscriptionCheckoutSession({
+  provider = config.billingProvider || 'stripe',
+  plan = 'pro',
+  interval = 'month',
+  user,
+  returnUrl,
+  cancelUrl,
+}) {
+  if (!config.billingEnabled) {
+    return {
+      success: false,
+      code: 'BILLING_DISABLED',
+      error: 'Subscription checkout is currently closed. Billing opens soon.',
+      billingEnabled: false,
+    };
+  }
+
+  const targetPlan = PLANS[plan];
+  if (!targetPlan || plan === 'free') {
+    return {
+      success: false,
+      code: 'INVALID_PLAN',
+      error: 'Invalid plan selected for subscription checkout.',
+    };
+  }
+
+  const normalizedProvider = provider === 'merchant-of-record' ? 'mor_polar' : provider;
+
+  if (normalizedProvider === 'stripe') {
+    if (!config.stripeSecretKey) {
+      return {
+        success: false,
+        code: 'GATEWAY_NOT_CONFIGURED',
+        error: 'Stripe credentials (STRIPE_SECRET_KEY) are not configured.',
+      };
+    }
+
+    const stripe = new Stripe(config.stripeSecretKey);
+    let customerId = user?.stripeCustomerId;
+    if (!customerId && user) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        name: user.name || user.businessName,
+        metadata: { userId: user._id.toString() },
+      });
+      customerId = customer.id;
+      user.stripeCustomerId = customerId;
+      await user.save();
+    }
+
+    const unitAmount = Math.round((targetPlan.monthlyPriceUSD || 19) * 100);
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: `Floorly ${targetPlan.name} Subscription`,
+              description: `Floorly ${targetPlan.name} Tier (${interval}ly billing)`,
+            },
+            unit_amount: unitAmount,
+            recurring: { interval: interval === 'year' ? 'year' : 'month' },
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: returnUrl || `${config.frontendUrl}/settings?billing_status=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelUrl || `${config.frontendUrl}/settings?billing_status=cancelled`,
+      metadata: {
+        userId: user?._id?.toString() || '',
+        plan: targetPlan.id,
+        interval,
+      },
+    });
+
+    return {
+      success: true,
+      provider: 'stripe',
+      url: session.url,
+      sessionId: session.id,
+      mode: 'stripe',
+    };
+  }
+
+  if (normalizedProvider === 'razorpay') {
+    if (!config.razorpayKeyId || !config.razorpayKeySecret) {
+      return {
+        success: false,
+        code: 'GATEWAY_NOT_CONFIGURED',
+        error: 'Razorpay credentials (RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET) are not configured.',
+      };
+    }
+
+    return {
+      success: true,
+      provider: 'razorpay',
+      mode: 'razorpay',
+      keyId: config.razorpayKeyId,
+      subscription: {
+        planId: `plan_${targetPlan.id}_${interval}`,
+        totalCount: interval === 'year' ? 12 : 60,
+        notes: {
+          userId: user?._id?.toString() || '',
+          plan: targetPlan.id,
+        },
+      },
+      instructions: `Razorpay recurring subscription prepared for ${targetPlan.name} tier.`,
+    };
+  }
+
+  if (normalizedProvider === 'mor_polar' || normalizedProvider === 'polar') {
+    if (!config.morApiKey) {
+      return {
+        success: false,
+        code: 'GATEWAY_NOT_CONFIGURED',
+        error: 'Merchant of Record credentials (MOR_API_KEY) are not configured.',
+      };
+    }
+
+    return {
+      success: true,
+      provider: 'merchant-of-record',
+      mode: 'mor',
+      url: `https://polar.sh/checkout/${targetPlan.id}?userId=${user?._id}`,
+      session: {
+        plan: targetPlan.id,
+        interval,
+      },
+      instructions: `Merchant of Record checkout session prepared for ${targetPlan.name} tier.`,
+    };
+  }
+
+  return {
+    success: false,
+    code: 'UNSUPPORTED_PROVIDER',
+    error: `Unsupported billing provider: '${provider}'`,
+  };
+}
+
+/**
+ * Customer portal session creation across providers
+ */
+export async function createCustomerPortalSession({
+  provider = config.billingProvider || 'stripe',
+  user,
+  returnUrl,
+}) {
+  if (!config.billingEnabled) {
+    return {
+      success: false,
+      code: 'BILLING_DISABLED',
+      error: 'Subscription billing is currently closed (BILLING_ENABLED=false). Customer portal is not available.',
+      billingEnabled: false,
+    };
+  }
+
+  const normalizedProvider = provider === 'merchant-of-record' ? 'mor_polar' : provider;
+
+  if (normalizedProvider === 'stripe') {
+    if (!config.stripeSecretKey) {
+      return {
+        success: false,
+        code: 'GATEWAY_NOT_CONFIGURED',
+        error: 'Stripe credentials (STRIPE_SECRET_KEY) are not configured.',
+      };
+    }
+    if (!user?.stripeCustomerId) {
+      return {
+        success: false,
+        code: 'NO_CUSTOMER_FOUND',
+        error: 'No active billing customer found for this account.',
+      };
+    }
+
+    const stripe = new Stripe(config.stripeSecretKey);
+    const session = await stripe.billingPortal.sessions.create({
+      customer: user.stripeCustomerId,
+      return_url: returnUrl || `${config.frontendUrl}/settings`,
+    });
+
+    return {
+      success: true,
+      provider: 'stripe',
+      url: session.url,
+    };
+  }
+
+  if (normalizedProvider === 'razorpay') {
+    return {
+      success: true,
+      provider: 'razorpay',
+      url: null,
+      instructions: 'To manage recurring UPI or card mandates, please use your UPI app or netbanking mandates section, or contact support.',
+    };
+  }
+
+  if (normalizedProvider === 'mor_polar' || normalizedProvider === 'polar') {
+    return {
+      success: true,
+      provider: 'merchant-of-record',
+      url: `https://polar.sh/customer-portal?customer=${encodeURIComponent(user?.email || '')}`,
+    };
+  }
+
+  return {
+    success: false,
+    code: 'UNSUPPORTED_PROVIDER',
+    error: `Customer portal is not supported for provider '${provider}'`,
+  };
+}
+

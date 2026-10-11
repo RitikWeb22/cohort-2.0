@@ -97,4 +97,9 @@ const projectSchema = new mongoose.Schema({
   timestamps: true,
 });
 
+// Production scale compound indexes (ESR rule)
+projectSchema.index({ userId: 1, createdAt: -1 });
+projectSchema.index({ userId: 1, status: 1 });
+projectSchema.index({ clientId: 1, userId: 1 });
+
 export const Project = mongoose.model('Project', projectSchema);

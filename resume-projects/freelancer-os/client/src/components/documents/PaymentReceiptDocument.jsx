@@ -59,7 +59,8 @@ export function PaymentReceiptDocumentSheet({
   const businessAddress = user?.businessAddress || '';
   const taxId = user?.taxId || '';
   const taxLabel = user?.taxType || 'Tax';
-  const logoUrl = user?.logoUrl || '';
+  const logoUrl = payment?.logoUrl || invoice?.logoUrl || user?.logoUrl || '';
+  const signatureUrl = payment?.signatureUrl || invoice?.signatureUrl || user?.signatureUrl || '';
 
   // Client details
   const effectiveClient = client || payment.client || invoice?.client || invoice?.clientId || {};
@@ -387,11 +388,20 @@ export function PaymentReceiptDocumentSheet({
           )}
         </div>
 
-        <div className="text-left sm:text-right shrink-0">
+        <div className="text-left sm:text-right shrink-0 min-w-[140px]">
+          <div className="min-h-[36px] flex items-end sm:justify-end mb-1">
+            {signatureUrl ? (
+              <img
+                src={signatureUrl}
+                alt="Authorized signature"
+                className="max-h-10 w-auto object-contain block sm:ml-auto"
+              />
+            ) : null}
+          </div>
           <div className="font-bold text-[#0E1A2B] text-sm">{businessName}</div>
           <div className="text-[11px] text-[#5B6676]">Authorized accounts department</div>
           <div
-            className="mt-4 pt-1 w-44 border-t border-[#D9D4C7] sm:ml-auto text-[10px] text-[#5B6676]"
+            className="mt-2 pt-1 w-44 border-t border-[#D9D4C7] sm:ml-auto text-[10px] text-[#5B6676]"
           >
             Official signature & stamp
           </div>

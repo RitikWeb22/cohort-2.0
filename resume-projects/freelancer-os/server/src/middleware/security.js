@@ -6,7 +6,7 @@
 
 // Deep sanitize an object to strip keys starting with '$' or containing '.'
 export function sanitizeData(data) {
-  if (!data || typeof data !== 'object') {
+  if (!data || typeof data !== 'object' || Buffer.isBuffer(data)) {
     return data;
   }
 

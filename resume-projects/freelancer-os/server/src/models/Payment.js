@@ -15,4 +15,9 @@ const paymentSchema = new mongoose.Schema({
   timestamps: true,
 });
 
+// Production scale compound indexes (ESR rule)
+paymentSchema.index({ userId: 1, createdAt: -1 });
+paymentSchema.index({ invoiceId: 1, userId: 1 });
+paymentSchema.index({ clientId: 1, userId: 1 });
+
 export const Payment = mongoose.model('Payment', paymentSchema);

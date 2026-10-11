@@ -32,15 +32,22 @@ try {
 }
 
 import { securityHeaders, sanitizeRequest } from './middleware/security.js';
+import { ensureAllDatabaseIndexes } from './config/dbIndexes.js';
+import { initRedis, getCacheStatus } from './services/redisService.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 app.disable('x-powered-by');
 
-// Connect to MongoDB Atlas
+// Initialize Redis caching layer with automatic fallback
+initRedis();
+
+// Connect to MongoDB Atlas & reconcile 1M+ scale indexes
 if (config.mongoUri) {
   try {
     await mongoose.connect(config.mongoUri, { serverSelectionTimeoutMS: 10000 });
     logger.info('Connected to MongoDB Atlas cluster successfully');
+    await ensureAllDatabaseIndexes();
   } catch (err) {
     logger.error({ err: err.message }, 'MongoDB Atlas connection failed');
   }
@@ -51,11 +58,44 @@ if (config.mongoUri) {
 // Security & Request sanitization middleware
 app.use(securityHeaders);
 
+const configuredFrontendUrls = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((u) => u.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'] : '*',
-  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (
+      configuredFrontendUrls.length === 0 ||
+      configuredFrontendUrls.includes(origin) ||
+      origin.endsWith('.vercel.app') ||
+      origin === 'http://localhost:5173' ||
+      origin === 'http://127.0.0.1:5173'
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS origin not allowed: ${origin}`), false);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Admin-Api-Key',
+    'Stripe-Signature',
+    'X-Webhook-Signature',
+    'X-Razorpay-Signature',
+    'X-Provider',
+  ],
 }));
+
+
+// Webhook route: express.raw mounted BEFORE express.json and sanitizeRequest with 2mb limit
+app.use(
+  ['/api/v1/subscription/webhook', '/api/v1/subscription/webhook/:provider'],
+  express.raw({ type: '*/*', limit: '2mb' })
+);
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -75,13 +115,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check endpoint
+// Health check endpoint with Redis and database telemetry
 app.get('/health', (req, res) => {
+  const cacheStatus = getCacheStatus();
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     service: 'Floorly Developer Platform API',
     database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    cache: cacheStatus,
     uptime: process.uptime(),
   });
 });
@@ -104,17 +146,27 @@ app.use('/api/v1/public', publicDocumentsRouter);
 
 // Centralized 404 handler
 app.use((req, res) => {
-  res.status(404).json({ success: false, error: `Route not found: ${req.method} ${req.originalUrl}` });
+  res.status(404).json({
+    success: false,
+    code: 'ROUTE_NOT_FOUND',
+    error: `Route not found: ${req.method} ${req.originalUrl}`,
+  });
 });
 
-// Global error handler (Safe production responses)
-app.use((err, req, res, next) => {
-  logger.error({ err: err.message, stack: err.stack }, 'Unhandled Application Error');
-  const isProduction = process.env.NODE_ENV === 'production';
-  res.status(err.status || 500).json({
-    success: false,
-    error: isProduction ? 'Internal Server Error' : (err.message || 'Internal Server Error'),
-  });
+// Centralized Production Error Handler Middleware
+app.use(errorHandler);
+
+// Global Process Exception Handlers for Production Stability
+process.on('unhandledRejection', (reason) => {
+  logger.error({ reason: reason?.message || reason }, 'Unhandled Promise Rejection');
+});
+
+process.on('uncaughtException', (err) => {
+  logger.fatal({ err: err.message, stack: err.stack }, 'Uncaught Exception in process');
+  // Allow pending requests to drain before exiting in production
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
 });
 
 app.listen(config.port, () => {

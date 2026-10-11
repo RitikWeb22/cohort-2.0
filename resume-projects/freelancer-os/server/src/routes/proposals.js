@@ -198,11 +198,19 @@ router.get('/:id', async (req, res) => {
       client,
       analysis,
       user: {
+        name: req.user.name || req.user.fullName,
+        fullName: req.user.fullName || req.user.name,
         businessName: req.user.businessName,
         businessEmail: req.user.businessEmail,
         businessPhone: req.user.businessPhone,
         businessAddress: req.user.businessAddress,
+        logoUrl: req.user.logoUrl,
+        signatureUrl: req.user.signatureUrl,
         currency: req.user.currency,
+        taxId: req.user.taxId,
+        taxType: req.user.taxType,
+        taxRate: req.user.taxRate,
+        plan: req.user.plan,
       },
     });
   } catch (err) {

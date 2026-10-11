@@ -85,7 +85,10 @@ router.get('/', async (req, res) => {
       if (prDate > new Date(entry.lastDate)) entry.lastDate = prDate;
     }
 
-    const enriched = clients.map(client => {
+    const sub = getSubscriptionDetails(req.user);
+    const maxAllowed = sub.limits.maxClients;
+
+    const enriched = clients.map((client, index) => {
       const cId = client._id.toString();
       const projData = projectMap.get(cId) || { totalContracted: 0, count: 0, lastDate: null };
       const invData = invoiceMap.get(cId) || { totalBilled: 0, amountReceived: 0, count: 0, overdueCount: 0, lastDate: null };
@@ -104,6 +107,9 @@ router.get('/', async (req, res) => {
       ].filter(Boolean);
       const lastActivity = new Date(Math.max(...dates.map(d => d.getTime())));
 
+      // On downgrade, clients beyond the Starter limit become read-only / archived-candidates (never deleted)
+      const isReadOnly = client.status !== 'archived' && index >= maxAllowed;
+
       return {
         ...client,
         id: cId,
@@ -119,6 +125,8 @@ router.get('/', async (req, res) => {
         acceptedProposalsCount: propData.acceptedCount,
         overdueInvoicesCount: invData.overdueCount,
         lastActivity,
+        isReadOnly,
+        isArchivedCandidate: isReadOnly,
       };
     });
 
@@ -259,6 +267,19 @@ router.get('/:id', async (req, res) => {
 router.patch('/:id', async (req, res) => {
   try {
     const userId = req.user._id;
+    const sub = getSubscriptionDetails(req.user);
+    if (sub.effectivePlan === 'free') {
+      const activeClients = await Client.find({ userId, status: { $ne: 'archived' } }).sort({ createdAt: -1 }).select('_id');
+      const idx = activeClients.findIndex(c => c._id.toString() === req.params.id);
+      if (idx >= sub.limits.maxClients) {
+        return res.status(403).json({
+          success: false,
+          code: 'CLIENT_READ_ONLY',
+          error: `Client is in read-only mode under the Starter plan (${sub.limits.maxClients} client limit). Upgrade to edit over-limit clients.`,
+        });
+      }
+    }
+
     const allowed = [
       'name',
       'company',

@@ -29,4 +29,8 @@ const expenseSchema = new mongoose.Schema({
   timestamps: true,
 });
 
+// Production scale compound indexes (ESR rule)
+expenseSchema.index({ userId: 1, date: -1 });
+expenseSchema.index({ userId: 1, projectId: 1 });
+
 export const Expense = mongoose.model('Expense', expenseSchema);

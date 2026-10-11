@@ -35,8 +35,10 @@ export function getSubscriptionDetails(user) {
   let isExpired = false;
   let isExpiringSoon = false;
   let daysRemaining = null;
+  let inGracePeriod = false;
   const now = new Date();
 
+  // 1. Check expiration date if set
   if (user.subscriptionExpiresAt) {
     const expiry = new Date(user.subscriptionExpiresAt);
     const msRemaining = expiry.getTime() - now.getTime();
@@ -49,7 +51,44 @@ export function getSubscriptionDetails(user) {
     }
   }
 
-  // If expired, revert effectivePlan to free
+  // 2. Lifecycle rule: past_due grace period evaluation
+  const isPastDue = user.subscriptionStatus === 'past_due';
+  if (isPastDue) {
+    if (user.gracePeriodExpiresAt) {
+      const graceEnd = new Date(user.gracePeriodExpiresAt);
+      if (graceEnd > now) {
+        inGracePeriod = true;
+        isExpired = false; // Retain paid access during active grace period
+      } else {
+        isExpired = true; // Downgrade to Starter once grace period expires
+      }
+    } else {
+      // Default to 7 days grace from last update if not explicitly recorded
+      const fallbackEnd = new Date((user.updatedAt ? new Date(user.updatedAt) : now).getTime() + 7 * 24 * 60 * 60 * 1000);
+      if (fallbackEnd > now) {
+        inGracePeriod = true;
+        isExpired = false;
+      } else {
+        isExpired = true;
+      }
+    }
+  }
+
+  // 3. Lifecycle rule: cancellation keeps access until period end
+  if (user.cancelAtPeriodEnd) {
+    if (user.subscriptionExpiresAt && new Date(user.subscriptionExpiresAt) > now) {
+      isExpired = false; // Keep access active until period end
+    } else {
+      isExpired = true;
+    }
+  }
+
+  // 4. Lifecycle rule: revoked (e.g. per full refund policy) immediately terminates paid access
+  if (user.subscriptionStatus === 'revoked' || user.subscriptionStatus === 'expired') {
+    isExpired = true;
+  }
+
+  // If expired and not in grace period, revert effectivePlan to Starter (free)
   const effectivePlan = (isExpired && rawPlan !== 'free') ? 'free' : rawPlan;
   const activePlanConfig = PLANS[effectivePlan] || PLANS.free;
 
@@ -62,14 +101,17 @@ export function getSubscriptionDetails(user) {
   return {
     rawPlan,
     effectivePlan,
-    isPaid: effectivePlan !== 'free' && user.subscriptionStatus !== 'unpaid',
+    isPaid: effectivePlan !== 'free' && user.subscriptionStatus !== 'unpaid' && user.subscriptionStatus !== 'revoked',
     isExpired,
     isExpiringSoon,
-    isPastDue: user.subscriptionStatus === 'past_due',
+    isPastDue,
+    inGracePeriod,
+    gracePeriodExpiresAt: user.gracePeriodExpiresAt || null,
+    cancelAtPeriodEnd: Boolean(user.cancelAtPeriodEnd),
     daysRemaining,
     expiresAt: user.subscriptionExpiresAt || null,
     billingInterval: user.billingInterval || 'month',
-    status: isExpired ? 'expired' : (user.subscriptionStatus || 'active'),
+    status: isExpired ? (user.subscriptionStatus === 'revoked' ? 'revoked' : 'expired') : (user.subscriptionStatus || 'active'),
     limits,
   };
 }

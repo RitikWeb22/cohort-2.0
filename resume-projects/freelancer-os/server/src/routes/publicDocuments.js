@@ -327,7 +327,7 @@ router.get('/invoices/:token', async (req, res) => {
 
     const [client, user] = await Promise.all([
       Client.findById(invoice.clientId).select('name company contactPerson email phone billingAddress').lean(),
-      User.findById(invoice.userId).select('name businessName businessEmail businessPhone businessAddress logoUrl currency iban swiftBic upiId paypalEmail bankDetails paymentMethods').lean(),
+      User.findById(invoice.userId).select('name businessName businessEmail businessPhone businessAddress logoUrl signatureUrl currency iban swiftBic upiId paypalEmail bankDetails paymentMethods').lean(),
     ]);
 
     // Mark as viewed in activity log

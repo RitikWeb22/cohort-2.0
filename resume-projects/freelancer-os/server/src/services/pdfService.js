@@ -75,7 +75,17 @@ function escapeHtml(str) {
 /**
  * Generate PDF buffer using Puppeteer
  */
-export async function generateProposalPdf({ proposal, client, user, options = {} }) {
+export async function generateProposalPdf(firstArg, clientArg, userArg, optionsArg = {}) {
+  let proposal, client, user, options;
+  if (firstArg && typeof firstArg === 'object' && ('proposal' in firstArg || (!clientArg && !userArg))) {
+    ({ proposal = firstArg.proposal || firstArg, client = firstArg.client, user = firstArg.user, options = firstArg.options || {} } = firstArg);
+  } else {
+    proposal = firstArg;
+    client = clientArg;
+    user = userArg;
+    options = optionsArg || {};
+  }
+
   const executablePath = getBrowserExecutablePath();
 
   const showHoursToClient = options.showHoursToClient !== undefined ? options.showHoursToClient : true;
@@ -96,8 +106,8 @@ export async function generateProposalPdf({ proposal, client, user, options = {}
   const businessAddress = user?.businessAddress || '';
   const taxId = user?.taxId || proposal.taxId || '';
   const taxLabel = user?.taxType || proposal.taxType || 'VAT';
-  const logoUrl = user?.logoUrl || '';
-  const signatureUrl = user?.signatureUrl || '';
+  const logoUrl = proposal?.logoUrl || user?.logoUrl || '';
+  const signatureUrl = proposal?.signatureUrl || user?.signatureUrl || '';
 
   const clientCompany = (client?.company || '').trim();
   const contactPerson = (client?.contactPerson || client?.name || '').trim();
@@ -537,10 +547,10 @@ export async function generateProposalPdf({ proposal, client, user, options = {}
         <div style="font-size: 8pt; font-weight: 700; color: #5B6676; text-transform: uppercase; letter-spacing: 0.5pt; margin-bottom: 4pt;">
           Authorized provider
         </div>
-        <div class="sig-line">
+        <div class="sig-line" style="min-height: 38pt; border-bottom: 1pt solid #0E1A2B; margin-bottom: 6pt; display: flex; align-items: flex-end;">
           ${
             signatureUrl
-              ? `<img src="${escapeHtml(signatureUrl)}" alt="Signature" style="max-height: 30pt; max-width: 140pt; object-fit: contain;">`
+              ? `<img src="${signatureUrl}" alt="Signature" style="display: block; max-height: 34pt; max-width: 150pt; object-fit: contain; margin-bottom: 2pt;">`
               : `<span style="font-weight: 600; font-size: 9.5pt;">${escapeHtml(user?.name || businessName)}</span>`
           }
         </div>
@@ -619,7 +629,17 @@ export async function generateProposalPdf({ proposal, client, user, options = {}
 /**
  * Generate Invoice PDF buffer using Puppeteer
  */
-export async function generateInvoicePdf({ invoice, client, user, options = {} }) {
+export async function generateInvoicePdf(firstArg, clientArg, userArg, optionsArg = {}) {
+  let invoice, client, user, options;
+  if (firstArg && typeof firstArg === 'object' && ('invoice' in firstArg || (!clientArg && !userArg))) {
+    ({ invoice = firstArg.invoice || firstArg, client = firstArg.client, user = firstArg.user, options = firstArg.options || {} } = firstArg);
+  } else {
+    invoice = firstArg;
+    client = clientArg;
+    user = userArg;
+    options = optionsArg || {};
+  }
+
   if (!invoice) throw new Error('Invoice data is required');
 
   const executablePath = getBrowserExecutablePath();
@@ -695,7 +715,8 @@ export async function generateInvoicePdf({ invoice, client, user, options = {} }
   const businessAddress = user?.businessAddress || '';
   const taxId = user?.taxId || invoice.taxId || '';
   const taxLabel = user?.taxType || invoice.taxType || 'VAT';
-  const logoUrl = user?.logoUrl || '';
+  const logoUrl = invoice?.logoUrl || user?.logoUrl || '';
+  const signatureUrl = invoice?.signatureUrl || user?.signatureUrl || '';
 
   const effClient = client || invoice.client || invoice.clientId || {};
   const clientCompany = (effClient.company || '').trim();
@@ -1127,10 +1148,28 @@ export async function generateInvoicePdf({ invoice, client, user, options = {} }
     </div>
   </section>
 
-  <!-- Notes and terms -->
-  <section style="break-inside: avoid; page-break-inside: avoid; font-size: 8.5pt; color: #5B6676; line-height: 1.4;">
-    <p style="color: #0E1A2B; font-weight: 500; margin-bottom: 3pt;">${escapeHtml(notes)}</p>
-    <p>${escapeHtml(lateFeeTerms)}</p>
+  <!-- Sign-off & Notes -->
+  <section style="break-inside: avoid; page-break-inside: avoid; margin-top: 14pt; display: flex; justify-content: space-between; align-items: flex-end; font-size: 8.5pt; color: #5B6676; line-height: 1.4;">
+    <div style="max-width: 60%;">
+      ${notes ? `<p style="color: #0E1A2B; font-weight: 500; margin-bottom: 3pt;">${escapeHtml(notes)}</p>` : ''}
+      ${lateFeeTerms ? `<p>${escapeHtml(lateFeeTerms)}</p>` : ''}
+      <p style="font-size: 8pt; margin-top: 3pt;">Thank you for your business.</p>
+    </div>
+    <div style="text-align: right; min-width: 130pt;">
+      <div style="min-height: 34pt; display: flex; align-items: flex-end; justify-content: flex-end; margin-bottom: 3pt;">
+        ${
+          signatureUrl
+            ? `<img src="${signatureUrl}" alt="Signature" style="display: block; max-height: 32pt; max-width: 130pt; object-fit: contain;">`
+            : `<span style="font-weight: 600; font-size: 9pt; color: #0E1A2B;">${escapeHtml(user?.name || user?.fullName || businessName)}</span>`
+        }
+      </div>
+      <div style="border-top: 0.75pt solid #0E1A2B; padding-top: 3pt; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.5pt; color: #5B6676;">
+        Authorized signature
+      </div>
+      <div style="font-weight: 600; color: #0E1A2B; font-size: 8pt; margin-top: 1pt;">
+        ${escapeHtml(businessName)}
+      </div>
+    </div>
   </section>
 </body>
 </html>`;
@@ -1182,7 +1221,18 @@ export async function generateInvoicePdf({ invoice, client, user, options = {} }
 /**
  * Generate Payment Receipt PDF buffer using Puppeteer
  */
-export async function generateReceiptPdf({ payment, invoice, client, user, options = {} }) {
+export async function generateReceiptPdf(firstArg, invoiceArg, clientArg, userArg, optionsArg = {}) {
+  let payment, invoice, client, user, options;
+  if (firstArg && typeof firstArg === 'object' && ('payment' in firstArg || (!invoiceArg && !clientArg))) {
+    ({ payment = firstArg.payment || firstArg, invoice = firstArg.invoice, client = firstArg.client, user = firstArg.user, options = firstArg.options || {} } = firstArg);
+  } else {
+    payment = firstArg;
+    invoice = invoiceArg;
+    client = clientArg;
+    user = userArg;
+    options = optionsArg || {};
+  }
+
   if (!payment) throw new Error('Payment data is required');
 
   const executablePath = getBrowserExecutablePath();
@@ -1202,7 +1252,8 @@ export async function generateReceiptPdf({ payment, invoice, client, user, optio
   const businessAddress = user?.businessAddress || '';
   const taxId = user?.taxId || '';
   const taxLabel = user?.taxType || 'Tax';
-  const logoUrl = user?.logoUrl || '';
+  const logoUrl = payment?.logoUrl || invoice?.logoUrl || user?.logoUrl || '';
+  const signatureUrl = payment?.signatureUrl || invoice?.signatureUrl || user?.signatureUrl || '';
 
   const effClient = client || payment.client || invoice?.client || invoice?.clientId || {};
   const clientCompany = (effClient.company || '').trim();
@@ -1439,10 +1490,17 @@ export async function generateReceiptPdf({ payment, invoice, client, user, optio
         Thank you for your business. This voucher serves as official proof of payment for your corporate accounting and tax reconciliation records.
       </p>
     </div>
-    <div style="text-align: right;">
+    <div style="text-align: right; min-width: 130pt;">
+      <div style="min-height: 34pt; display: flex; align-items: flex-end; justify-content: flex-end; margin-bottom: 3pt;">
+        ${
+          signatureUrl
+            ? `<img src="${signatureUrl}" alt="Official signature" style="display: block; max-height: 32pt; max-width: 130pt; object-fit: contain;">`
+            : `<span style="font-weight: 600; font-size: 9pt; color: #0E1A2B;">${escapeHtml(user?.name || user?.fullName || businessName)}</span>`
+        }
+      </div>
       <div style="font-weight: 700; color: #0E1A2B;">${escapeHtml(businessName)}</div>
       <div style="font-size: 8pt;">Authorized accounts department</div>
-      <div style="margin-top: 14pt; border-top: 0.75pt solid #D9D4C7; width: 130pt; margin-left: auto; padding-top: 2pt; font-size: 7.5pt;">
+      <div style="margin-top: 4pt; border-top: 0.75pt solid #D9D4C7; width: 130pt; margin-left: auto; padding-top: 2pt; font-size: 7.5pt;">
         Official signature & stamp
       </div>
     </div>

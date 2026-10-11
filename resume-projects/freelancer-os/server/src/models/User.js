@@ -36,8 +36,12 @@ const userSchema = new mongoose.Schema({
   plan: { type: String, enum: ['free', 'solo', 'pro', 'agency'], default: 'free' },
   stripeCustomerId: { type: String, default: '' },
   stripeSubscriptionId: { type: String, default: '' },
+  subscriptionProvider: { type: String, default: '' },
+  subscriptionId: { type: String, default: '' },
   subscriptionStatus: { type: String, default: 'active' },
   subscriptionExpiresAt: { type: Date },
+  gracePeriodExpiresAt: { type: Date, default: null },
+  cancelAtPeriodEnd: { type: Boolean, default: false },
   billingInterval: { type: String, enum: ['month', 'year'], default: 'month' },
   // Business Identity
   website: { type: String, default: '' },
@@ -131,5 +135,10 @@ const userSchema = new mongoose.Schema({
 }, {
   timestamps: true,
 });
+
+// Production scale indexes (1M+ users)
+userSchema.index({ stripeCustomerId: 1 }, { sparse: true });
+userSchema.index({ stripeSubscriptionId: 1 }, { sparse: true });
+userSchema.index({ subscriptionStatus: 1, gracePeriodExpiresAt: 1 });
 
 export const User = mongoose.model('User', userSchema);
